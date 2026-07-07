@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Censo y Balance — Campamento Transitorio José Gervasio Artigas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --navy:#1B3A5F;
+    --navy-dark:#152F4E;
+    --teal:#2E9E8F;
+    --teal-dark:#0E6F60;
+    --card-bg:#F8FAFB;
+    --card-border:#E3E9EE;
+    --pill:#EEF2F5;
+    --text-muted:#5E7186;
+    --green-head:#D9EAD3;
+    --green-border:#B6D7A8;
+    --blue-head:#CFE2F3;
+    --blue-border:#9FC5E8;
+    --danger:#B3402A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Montserrat',system-ui,-apple-system,sans-serif;
+    background:#EDF1F4;color:var(--navy);
+    padding:16px;
+  }
+  .app{max-width:960px;margin:0 auto}
+
+  /* ── Barra institucional (logo) ── */
+  .inst-bar{
+    display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--card-border);
+    border-radius:12px;padding:12px 18px;margin-bottom:14px;
+  }
+  .inst-bar img{height:34px;width:auto;display:block}
+  .inst-bar .inst-text{font-size:11px;color:var(--text-muted);font-weight:600;line-height:1.3}
+  .inst-bar .inst-text b{color:var(--navy);display:block;font-size:12.5px;font-weight:800}
+
+  /* ── Pestañas ─────────────────────────────── */
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .tab-btn{
+    flex:1;min-width:140px;padding:12px;border:none;border-radius:10px;cursor:pointer;
+    font-family:inherit;font-weight:700;font-size:13.5px;letter-spacing:.3px;
+    background:#fff;color:var(--text-muted);border:1px solid var(--card-border);
+  }
+  .tab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .panel{display:none}
+  .panel.active{display:block}
+
+  .sync-bar{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    font-size:12px;color:var(--text-muted);margin-bottom:12px;flex-wrap:wrap;
+  }
+  .sync-bar .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#9AA9B7;margin-right:6px}
+  .sync-bar.online .dot{background:var(--teal)}
+  .btn{
+    font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;
+    padding:10px 18px;border-radius:8px;border:1px solid var(--card-border);
+    background:#fff;color:var(--navy);
+  }
+  .btn.primary{background:var(--teal-dark);color:#fff;border-color:var(--teal-dark)}
+  .btn.primary:disabled{opacity:.55;cursor:wait}
+  .btn.ghost{background:#fff;color:var(--navy)}
+
+  /* ── FORMULARIO (estilo hoja de cálculo) ──── */
+  .sheet{background:#fff;border:1px solid var(--card-border);border-radius:14px;padding:20px}
+  .sheet h2{font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .sheet .sub{font-size:12px;color:var(--teal);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:18px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:680px){.grid{grid-template-columns:1fr}}
+  fieldset{
+    border:1px solid var(--green-border);border-radius:8px;overflow:hidden;
+    background:#fff;
+  }
+  fieldset.blue{border-color:var(--blue-border)}
+  legend{display:none}
+  .fs-title{
+    background:var(--green-head);padding:8px 12px;font-size:12.5px;font-weight:700;
+    border-bottom:1px solid var(--green-border);
+  }
+  fieldset.blue .fs-title{background:var(--blue-head);border-bottom-color:var(--blue-border)}
+  .row{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:6px 12px;border-bottom:1px solid #EFF3F0;font-size:12.5px;
+  }
+  .row:last-child{border-bottom:none}
+  .row label{flex:1;font-weight:500}
+  .row input[type=number],.row input[type=date],.row input[type=text],
+  .row input[type=tel],.row select{
+    width:150px;padding:6px 8px;border:1px solid #C9D4DD;border-radius:6px;
+    font-family:inherit;font-size:12.5px;text-align:right;color:var(--navy);font-weight:600;
+  }
+  .row input[type=date]{width:150px;text-align:left}
+  .row input[type=text],.row input[type=tel],.row select{text-align:left}
+  .row input:focus,.row select:focus{outline:2px solid var(--teal);outline-offset:0;border-color:var(--teal)}
+  .row.subtotal{background:#F4F8F3;font-weight:700}
+  .row.subtotal span{font-size:13.5px}
+  .row .rm{
+    border:none;background:none;color:var(--danger);cursor:pointer;
+    font-weight:800;font-size:15px;line-height:1;padding:2px 6px;
+  }
+  .row.readout{background:#F5F9FC;font-weight:700}
+  .row.readout span{color:var(--teal-dark)}
+  .add-row{
+    width:100%;border:1px dashed var(--green-border);background:#FBFDFA;color:var(--teal-dark);
+    font-family:inherit;font-weight:700;font-size:12px;padding:7px;cursor:pointer;
+  }
+  .form-foot{margin-top:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .form-foot .msg{font-size:12.5px;font-weight:600}
+  .msg.ok{color:var(--teal-dark)} .msg.err{color:var(--danger)}
+  .who{display:flex;align-items:center;gap:8px;font-size:12.5px;margin:14px 0 0}
+  .who input{flex:1;max-width:320px;padding:8px 10px;border:1px solid #C9D4DD;border-radius:6px;font-family:inherit;font-size:13px}
+  .field-hint{font-size:10.5px;color:var(--text-muted);font-weight:500;margin-top:2px}
+  .hidden{display:none!important}
+
+  /* ── Campos vinculados con Datos Personales ── */
+  fieldset.linked{border-color:var(--blue-border)}
+  fieldset.linked .fs-title{background:var(--blue-head);border-bottom-color:var(--blue-border);display:flex;justify-content:space-between;align-items:center}
+  fieldset.linked .fs-title .tag{font-size:10px;font-weight:800;color:#2C6FA8;letter-spacing:.5px}
+  .row input[readonly]{
+    background:#EEF2F5;color:var(--text-muted);cursor:not-allowed;font-weight:700;
+  }
+  .link-note{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+    background:var(--blue-head);border:1px solid var(--blue-border);border-radius:8px;
+    padding:10px 14px;font-size:11.5px;font-weight:600;color:#2C6FA8;margin-bottom:16px;
+  }
+
+  /* ── LISTADO DE PERSONAS ────────────────────── */
+  .search-bar{display:flex;gap:10px;margin:18px 0 10px;flex-wrap:wrap}
+  .search-bar input{
+    flex:1;min-width:200px;padding:9px 12px;border:1px solid #C9D4DD;border-radius:8px;
+    font-family:inherit;font-size:13px;
+  }
+  .summary-pills{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .pill-stat{
+    background:var(--pill);border-radius:999px;padding:6px 14px;font-size:11.5px;font-weight:700;
+    color:var(--navy-dark);
+  }
+  .pill-stat b{color:var(--teal-dark)}
+  .tabla-wrap{overflow-x:auto;border:1px solid var(--card-border);border-radius:10px}
+  table.personas{width:100%;border-collapse:collapse;font-size:12px}
+  table.personas th{
+    background:var(--navy);color:#fff;text-align:left;padding:9px 10px;font-weight:700;
+    white-space:nowrap;
+  }
+  table.personas td{padding:8px 10px;border-bottom:1px solid #EEF2F5;white-space:nowrap}
+  table.personas tr:last-child td{border-bottom:none}
+  table.personas tr:hover td{background:#F8FAFB}
+  .badge{
+    display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700;
+  }
+  .badge.lactante{background:#FDE8E8;color:#B3402A}
+  .badge.nino{background:#FFF3D6;color:#8A5A00}
+  .badge.adolescente{background:#E4E9FD;color:#3B4FBE}
+  .badge.adulto{background:#DDF3EE;color:var(--teal-dark)}
+  .badge.adultoMayor{background:#EAE2F7;color:#5B3E96}
+  .del-btn{
+    border:none;background:none;color:var(--danger);font-weight:800;cursor:pointer;font-size:13px;
+  }
+  .empty-mini{padding:24px;text-align:center;color:var(--text-muted);font-size:12.5px;font-weight:600}
+
+  /* ── DASHBOARD (formato institucional) ────── */
+  .dash{background:#fff;border:1px solid var(--card-border);border-radius:16px;padding:28px 26px}
+  .dash h1{
+    text-align:center;font-size:clamp(17px,3.4vw,24px);font-weight:800;
+    letter-spacing:.5px;color:var(--navy-dark);
+  }
+  .dash .camp{
+    text-align:center;color:var(--teal);font-weight:700;letter-spacing:1.5px;
+    font-size:clamp(12px,2.2vw,15px);text-transform:uppercase;margin-top:4px;
+  }
+  .date-pill{
+    display:block;width:fit-content;margin:14px auto 22px;background:var(--pill);
+    padding:8px 22px;border-radius:999px;font-weight:700;font-size:13px;letter-spacing:.5px;
+  }
+  .cards2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:640px){.cards2,.cards3{grid-template-columns:1fr}}
+  .card{
+    background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;
+    padding:22px 14px;text-align:center;
+  }
+  .card .icon{height:34px;margin-bottom:10px;display:flex;justify-content:center;align-items:center}
+  .card .icon svg{height:32px;width:auto;fill:var(--navy);stroke:var(--navy)}
+  .card .label{font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+  .card .hint{font-size:10px;color:var(--text-muted);font-weight:600}
+  .card .num{font-size:clamp(34px,6vw,48px);font-weight:800;color:var(--navy-dark);line-height:1.15;margin:6px 0 2px}
+  .card .cap{font-size:11px;color:var(--teal);font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+  .section-title{
+    display:flex;align-items:center;gap:14px;margin:26px 0 14px;
+    font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+    color:var(--navy);justify-content:center;
+  }
+  .section-title::before,.section-title::after{content:"";flex:1;height:1px;background:var(--card-border)}
+  .note{
+    margin-top:24px;background:var(--teal-dark);color:#fff;border-radius:10px;
+    padding:14px 18px;font-size:13px;font-weight:500;
+  }
+  .note b{color:#8FE0D3;letter-spacing:.5px;text-transform:uppercase;font-weight:800}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;font-weight:600}
+
+  /* ── OBRAS Y SERVICIOS ── */
+  .progress-global{
+    background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;
+    padding:20px 22px;margin-top:8px;
+  }
+  .progress-global .pg-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .progress-global .pg-label{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--navy)}
+  .progress-global .pg-pct{font-size:clamp(26px,5vw,38px);font-weight:800;color:var(--teal-dark);line-height:1}
+  .pg-track{height:16px;background:#E3E9EE;border-radius:999px;overflow:hidden}
+  .pg-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--teal),var(--teal-dark));transition:width .8s ease}
+  .pg-sub{font-size:11.5px;color:var(--text-muted);font-weight:600;margin-top:8px}
+
+  .obras-section-title{
+    display:flex;align-items:center;gap:10px;margin:30px 0 16px;
+    font-size:14px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--navy-dark);
+    padding-bottom:10px;border-bottom:2px solid var(--card-border);
+  }
+  .obras-section-title .dot-check{color:var(--teal-dark);font-size:16px}
+  .obras-section-title .count-badge{
+    margin-left:auto;background:var(--green-head);color:var(--teal-dark);
+    font-size:12px;padding:3px 12px;border-radius:999px;font-weight:800;letter-spacing:0;
+  }
+  .obras-section-title .count-badge.orange{background:#FCE7D6;color:#C25A17}
+
+  .obras-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:820px){.obras-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.obras-grid{grid-template-columns:1fr}}
+  .obra-card{
+    background:#fff;border:1px solid var(--card-border);border-radius:12px;padding:18px 14px;
+    text-align:center;display:flex;flex-direction:column;gap:8px;border-top:4px solid var(--teal);
+  }
+  .obra-card.progress{border-top-color:#E8802B}
+  .obra-card .o-icon{height:38px;display:flex;align-items:center;justify-content:center}
+  .obra-card .o-icon svg{height:34px;width:auto}
+  .obra-card.done .o-icon svg{fill:var(--teal-dark);stroke:var(--teal-dark)}
+  .obra-card.progress .o-icon svg{fill:#E8802B;stroke:#E8802B}
+  .obra-card .o-name{font-size:12.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--navy-dark)}
+  .obra-card .o-desc{font-size:11.5px;color:var(--text-muted);font-weight:500;line-height:1.5;flex:1}
+  .obra-card .o-desc b{color:var(--navy)}
+  .obra-card .o-date{
+    font-size:11px;font-weight:700;padding:7px;border-radius:7px;
+    background:#EAF6F2;color:var(--teal-dark);
+  }
+  .obra-card.progress .o-date{background:#FDF1E6;color:#C25A17}
+  .obra-card .o-bar{height:7px;background:#EAEEF1;border-radius:999px;overflow:hidden}
+  .obra-card .o-bar span{display:block;height:100%;border-radius:999px}
+  .obra-card.done .o-bar span{background:var(--teal-dark)}
+  .obra-card.progress .o-bar span{background:#E8802B}
+  .obra-card .o-pct{font-size:10.5px;font-weight:700;color:var(--text-muted)}
+
+  @media print{
+    body{background:#fff;padding:0}
+    .tabs,.sync-bar,#panel-form,#panel-personas,#panel-obras{display:none!important}
+    .dash{border:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="inst-bar">
+    <img id="instLogo" alt="Banco del Tesoro">
+    <div class="inst-text"><b>Banco del Tesoro</b>Institución de apoyo — Campamento Transitorio José Gervasio Artigas</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabPersonas" onclick="showTab('personas')">🪪 Datos Personales</button>
+    <button class="tab-btn" id="tabForm" onclick="showTab('form')">📋 Registro de Datos</button>
+    <button class="tab-btn" id="tabDash" onclick="showTab('dash')">📊 Balance General</button>
+    <button class="tab-btn" id="tabObras" onclick="showTab('obras')">🏗 Obras y Servicios</button>
+    <button class="tab-btn" id="tabObrasEdit" onclick="showTab('obrasEdit')">🛠 Cargar Obras</button>
+  </div>
+
+  <div class="sync-bar" id="syncBar">
+    <span><span class="dot"></span><span id="syncText">Sin conexión configurada — modo local</span></span>
+    <span style="display:flex;gap:8px">
+      <button class="btn" onclick="loadLatest(true); loadPersonas(true)">⟳ Actualizar</button>
+      <button class="btn" onclick="generarPDF()">📄 Generar PDF</button>
+      <button class="btn" onclick="capturarPantalla()">📸 Capturar</button>
+    </span>
+  </div>
+
+  <!-- ═══════════ DATOS PERSONALES (formato oficial de registro de familias) ═══════════ -->
+  <div class="panel active" id="panel-personas">
+    <div class="sheet">
+      <h2>Registro de Datos Personales</h2>
+      <div class="sub">Campamento Transitorio José Gervasio Artigas — Formato de registro de familias</div>
+
+      <div class="grid">
+        <!-- COLUMNA IZQUIERDA -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <fieldset class="blue">
+            <div class="fs-title">Datos del Ingreso</div>
+            <div class="row"><label>ID Registro:</label><input type="text" id="p_idRegistro" placeholder="Se genera automático" readonly></div>
+            <div class="row"><label>Fecha de ingreso:</label><input type="date" id="p_fechaIngreso"></div>
+            <div class="row"><label>Motivo del ingreso:</label><input type="text" id="p_motivo" placeholder="Ej. Inundación"></div>
+            <div class="row"><label>Remitido desde:</label><input type="text" id="p_remitidoDesde" placeholder="Institución / lugar"></div>
+            <div class="row"><label>N° de brazalete:</label><input type="text" id="p_nroBrazalete" placeholder="N°"></div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Núcleo Familiar</div>
+            <div class="row"><label>¿Viene solo(a)?</label>
+              <select id="p_vieneSolo" onchange="toggleNucleo()"><option value="No">No, con familia</option><option value="Sí">Sí, viene solo(a)</option></select>
+            </div>
+            <div class="row" id="row_jefeFamilia"><label>Jefe de familia:</label><input type="text" id="p_jefeFamilia" placeholder="Nombre del jefe de familia"></div>
+            <div class="row" id="row_parentesco"><label>Parentesco:</label>
+              <select id="p_parentesco">
+                <option value="">Seleccione</option>
+                <option>Jefe(a) de familia</option><option>Cónyuge / Pareja</option>
+                <option>Hijo(a)</option><option>Padre / Madre</option>
+                <option>Hermano(a)</option><option>Abuelo(a)</option>
+                <option>Nieto(a)</option><option>Otro familiar</option><option>No familiar</option>
+              </select>
+            </div>
+            <div class="row"><label>N° de integrantes:</label><input type="number" min="1" id="p_nroIntegrantes" value="1"></div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Identificación</div>
+            <div class="row"><label>Nombres y apellidos:</label><input type="text" id="p_nombres" placeholder="Nombre completo"></div>
+            <div class="row"><label>N° de cédula:</label><input type="text" id="p_cedula" placeholder="V-12345678" maxlength="12"></div>
+            <div class="row"><label>Sexo:</label>
+              <select id="p_sexo" onchange="actualizarEdadGrupo()">
+                <option value="">Seleccione</option><option value="Femenino">Femenino</option><option value="Masculino">Masculino</option>
+              </select>
+            </div>
+            <div class="row"><label>Fecha de nacimiento:</label><input type="date" id="p_fechaNacimiento"></div>
+            <div class="row readout"><label>Edad / Grupo etario:</label><span id="p_edadGrupo">—</span></div>
+            <div class="row hidden" id="row_cedulaJefe"><label>Cédula del jefe (menor de edad):</label><input type="text" id="p_cedulaJefe" placeholder="V-12345678"></div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Contacto y Origen</div>
+            <div class="row"><label>N° de contacto:</label><input type="tel" id="p_contacto" placeholder="0412-1234567"></div>
+            <div class="row"><label>Dirección de origen:</label><input type="text" id="p_direccionOrigen" placeholder="Sector / municipio"></div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Mascotas</div>
+            <div class="row"><label>¿Trae mascota?</label>
+              <select id="p_mascota" onchange="toggleMascota()"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+            <div class="row hidden" id="row_especieMascota"><label>Especie:</label>
+              <select id="p_especieMascota"><option value="">Seleccione</option><option>Perro</option><option>Loro</option><option>Gato</option><option>Otra</option></select>
+            </div>
+            <div class="row hidden" id="row_cantidadMascotas"><label>Cantidad:</label><input type="number" min="0" id="p_cantidadMascotas" value="0"></div>
+          </fieldset>
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <fieldset class="blue">
+            <div class="fs-title">Perfil Socioeconómico</div>
+            <div class="row"><label>Grado de instrucción:</label>
+              <select id="p_gradoInstruccion">
+                <option value="">Seleccione</option>
+                <option>Sin instrucción</option><option>Primaria</option><option>Secundaria</option>
+                <option>Técnico(a)</option><option>Universitario(a)</option><option>Postgrado</option>
+              </select>
+            </div>
+            <div class="row"><label>¿Trabaja actualmente?</label>
+              <select id="p_trabaja" onchange="toggleTrabajo()"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+            <div class="row hidden" id="row_indiqueTrabajo"><label>Indique ocupación:</label><input type="text" id="p_indiqueTrabajo" placeholder="Oficio / profesión"></div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Tallas (donaciones)</div>
+            <div class="row"><label>Talla de blusa/camisa:</label><input type="text" id="p_tallaBlusa" placeholder="S / M / L / XL"></div>
+            <div class="row"><label>Talla de pantalón:</label><input type="text" id="p_tallaPantalon" placeholder="Ej. 32"></div>
+            <div class="row"><label>Talla de calzado:</label><input type="text" id="p_tallaCalzado" placeholder="Ej. 40"></div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Salud</div>
+            <div class="row"><label>¿Presenta discapacidad?</label>
+              <select id="p_discapacidad" onchange="toggleSalud()"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+            <div class="row hidden" id="row_indiqueDiscapacidad"><label>Indique discapacidad:</label><input type="text" id="p_indiqueDiscapacidad" placeholder="Tipo de discapacidad"></div>
+            <div class="row"><label>¿Enfermedad crónica?</label>
+              <select id="p_cronica" onchange="toggleSalud()"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+            <div class="row hidden" id="row_indiqueEnfermedad"><label>Indique enfermedad:</label><input type="text" id="p_indiqueEnfermedad" placeholder="Enfermedad"></div>
+            <div class="row"><label>¿Tratamiento médico?</label>
+              <select id="p_tratamiento" onchange="toggleSalud()"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+            <div class="row hidden" id="row_especifiqueTratamiento"><label>Especifique:</label><input type="text" id="p_especifiqueTratamiento" placeholder="Medicamentos / dosis"></div>
+            <div class="row"><label>¿Tiene control médico?</label>
+              <select id="p_controlMedico" onchange="toggleSalud()"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+            <div class="row hidden" id="row_indiqueControl"><label>Indique control:</label><input type="text" id="p_indiqueControl" placeholder="Especialidad / centro"></div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Atención Especial</div>
+            <div class="row hidden" id="row_embarazada"><label>¿Embarazada?</label>
+              <select id="p_embarazada"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+            <div class="row hidden" id="row_lactanciaP"><label>¿En periodo de lactancia?</label>
+              <select id="p_lactancia"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+            <div class="field-hint" id="hint_atencion" style="padding:6px 12px">Estos campos aplican solo a mujeres en edad correspondiente.</div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Ubicación y Estatus</div>
+            <div class="row"><label>Ubicación (aula):</label><input type="text" id="p_ubicacionAula" placeholder="Ej. Aula 3"></div>
+            <div class="row"><label>¿Registrado en SAIME?</label>
+              <select id="p_registradoSaime"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+            <div class="row"><label>¿Censado?</label>
+              <select id="p_censado"><option value="Sí">Sí</option><option value="No">No</option></select>
+            </div>
+            <div class="row"><label>¿Carnetizado?</label>
+              <select id="p_carnetizado" onchange="actualizarEdadGrupo()"><option value="No">No</option><option value="Sí">Sí</option></select>
+            </div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Egreso (opcional)</div>
+            <div class="row"><label>Fecha de egreso:</label><input type="date" id="p_fechaEgreso"></div>
+            <div class="row"><label>Motivo de egreso:</label><input type="text" id="p_motivoEgreso" placeholder="Si aplica"></div>
+          </fieldset>
+
+          <fieldset class="blue">
+            <div class="fs-title">Observaciones</div>
+            <div class="row"><label>Notas:</label><input type="text" id="p_observaciones" placeholder="Observaciones generales"></div>
+          </fieldset>
+
+          <div class="who">
+            <label style="font-weight:700">Registrado por:</label>
+            <input type="text" id="p_registradoPor" placeholder="Nombre / máquina">
+          </div>
+
+          <div class="form-foot">
+            <button class="btn primary" id="btnSavePersona" onclick="savePersona()">💾 Guardar persona</button>
+            <button class="btn ghost" onclick="limpiarFormPersona()">✕ Limpiar</button>
+            <span class="msg" id="savePersonaMsg"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Personas Registradas</div>
+      <div class="summary-pills" id="summaryPills"></div>
+      <div class="search-bar">
+        <input type="text" id="buscarPersona" placeholder="Buscar por cédula, nombre, jefe de familia o aula…" oninput="filtrarPersonas()">
+        <button class="btn primary" onclick="exportarExcel()">⬇ Exportar a Excel</button>
+        <button class="btn" onclick="$('filePersonas').click()">📥 Importar Excel</button>
+        <button class="btn" onclick="descargarPlantillaPersonas()">📄 Descargar plantilla</button>
+        <input type="file" id="filePersonas" accept=".xlsx,.xls" class="hidden" onchange="procesarImportPersonas(event)">
+        <button class="btn" onclick="showTab('form')">📋 Ver Registro de Datos</button>
+      </div>
+      <div class="tabla-wrap">
+        <table class="personas">
+          <thead>
+            <tr>
+              <th>ID</th><th>Cédula</th><th>Nombres y apellidos</th><th>Edad</th><th>Grupo</th>
+              <th>Sexo</th><th>Parentesco</th><th>Jefe de familia</th><th>Contacto</th><th>Aula</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="personasTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ FORMULARIO AGREGADO ═══════════ -->
+  <div class="panel" id="panel-form">
+    <div class="sheet">
+      <h2>Registro de Datos del Censo</h2>
+      <div class="sub">Campamento Transitorio José Gervasio Artigas</div>
+
+      <div class="link-note">
+        <span>🔗 Los campos con fondo gris se calculan automáticamente a partir de «Datos Personales» — no se editan aquí.</span>
+        <span id="linkSyncTime">Sincronizando…</span>
+      </div>
+
+      <div class="grid">
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <fieldset class="linked">
+            <div class="fs-title"><span>Adultos Mayores (60 años o más)</span><span class="tag">🔗 vinculado</span></div>
+            <div class="row"><label>Femeninos:</label><input type="number" min="0" id="amF" value="0" readonly></div>
+            <div class="row"><label>Masculinos:</label><input type="number" min="0" id="amM" value="0" readonly></div>
+            <div class="row subtotal"><label>Subtotal</label><span id="st_am">0</span></div>
+          </fieldset>
+
+          <fieldset class="linked">
+            <div class="fs-title"><span>Adultos (18 a 60 años)</span><span class="tag">🔗 vinculado</span></div>
+            <div class="row"><label>Femeninos:</label><input type="number" min="0" id="adF" value="0" readonly></div>
+            <div class="row"><label>Masculinos:</label><input type="number" min="0" id="adM" value="0" readonly></div>
+            <div class="row subtotal"><label>Subtotal</label><span id="st_ad">0</span></div>
+          </fieldset>
+
+          <fieldset class="linked">
+            <div class="fs-title"><span>Niños, Niñas y Adolescentes</span><span class="tag">🔗 vinculado</span></div>
+            <div class="row"><label>Lactantes Niñas (0 a 2 años):</label><input type="number" min="0" id="lacNinas" value="0" readonly></div>
+            <div class="row"><label>Lactantes Niños (0 a 2 años):</label><input type="number" min="0" id="lacNinos" value="0" readonly></div>
+            <div class="row"><label>No Lactantes Niñas (0 a 12 años):</label><input type="number" min="0" id="noLacNinas" value="0" readonly></div>
+            <div class="row"><label>No Lactantes Niños (0 a 12 años):</label><input type="number" min="0" id="noLacNinos" value="0" readonly></div>
+            <div class="row"><label>Adolescentes Femenino (13 a 17 años):</label><input type="number" min="0" id="adolF" value="0" readonly></div>
+            <div class="row"><label>Adolescentes Masculino (13 a 17 años):</label><input type="number" min="0" id="adolM" value="0" readonly></div>
+            <div class="row subtotal"><label>Subtotal</label><span id="st_nna">0</span></div>
+          </fieldset>
+
+          <fieldset class="linked">
+            <div class="fs-title"><span>Núcleos Familiares</span><span class="tag">🔗 vinculado</span></div>
+            <div class="row"><label>Total de familias:</label><input type="number" min="0" id="nucleos" value="0" readonly></div>
+          </fieldset>
+
+          <fieldset>
+            <div class="fs-title">Capacidad Instalada</div>
+            <div class="row"><label>Total de plazas:</label><input type="number" min="0" id="capacidadInstalada" value="400"></div>
+          </fieldset>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <fieldset class="linked">
+            <div class="fs-title"><span>Atención Especial</span><span class="tag">🔗 vinculado</span></div>
+            <div class="row"><label>Mujeres embarazadas:</label><input type="number" min="0" id="embarazadas" value="0" readonly></div>
+            <div class="row"><label>Mujeres en periodo de lactancia:</label><input type="number" min="0" id="lactancia" value="0" readonly></div>
+          </fieldset>
+
+          <fieldset class="linked">
+            <div class="fs-title"><span>Personas con Discapacidad</span><span class="tag">🔗 vinculado</span></div>
+            <div class="row"><label>Femeninos:</label><input type="number" min="0" id="disF" value="0" readonly></div>
+            <div class="row"><label>Masculinos:</label><input type="number" min="0" id="disM" value="0" readonly></div>
+            <div class="row subtotal"><label>Subtotal</label><span id="st_dis">0</span></div>
+          </fieldset>
+
+          <fieldset class="linked">
+            <div class="fs-title"><span>Personas con Enfermedades Crónicas</span><span class="tag">🔗 vinculado</span></div>
+            <div class="row"><label>Femeninos:</label><input type="number" min="0" id="croF" value="0" readonly></div>
+            <div class="row"><label>Masculinos:</label><input type="number" min="0" id="croM" value="0" readonly></div>
+            <div class="row subtotal"><label>Subtotal</label><span id="st_cro">0</span></div>
+          </fieldset>
+
+          <fieldset class="linked">
+            <div class="fs-title"><span>Mascotas</span><span class="tag">🔗 vinculado</span></div>
+            <div class="row"><label>Perro:</label><input type="number" min="0" id="perro" value="0" readonly></div>
+            <div class="row"><label>Loro:</label><input type="number" min="0" id="loro" value="0" readonly></div>
+            <div class="row"><label>Otras:</label><input type="number" min="0" id="otrasMascotas" value="0" readonly></div>
+            <div class="row subtotal"><label>Subtotal</label><span id="st_masc">0</span></div>
+          </fieldset>
+
+          <fieldset>
+            <div class="fs-title">Ingresos por Fecha</div>
+            <div id="ingresosList"></div>
+            <div class="row subtotal"><label>Subtotal ingresos</label><span id="st_ing">0</span></div>
+            <button type="button" class="add-row" onclick="addIngreso()">＋ Agregar fecha de ingreso</button>
+          </fieldset>
+
+          <fieldset>
+            <div class="fs-title">Pendientes</div>
+            <div class="row"><label>Registrados por carnetizar:</label><input type="number" min="0" id="porCarnetizar" value="0"></div>
+          </fieldset>
+
+          <fieldset>
+            <div class="fs-title">Totales (cálculo automático)</div>
+            <div class="row subtotal"><label>Femeninos</label><span id="st_totF">0</span></div>
+            <div class="row subtotal"><label>Masculinos</label><span id="st_totM">0</span></div>
+            <div class="row subtotal"><label>Censados</label><span id="st_cens">0</span></div>
+            <div class="row subtotal"><label>Total de personas (ocupada)</label><span id="st_ocup">0</span></div>
+          </fieldset>
+        </div>
+      </div>
+
+      <div class="who">
+        <label style="font-weight:700">Registrado por:</label>
+        <input type="text" id="registradoPor" placeholder="Nombre / máquina (ej. Andru — PC-01)">
+      </div>
+
+      <div class="form-foot">
+        <button class="btn primary" id="btnSave" onclick="saveData()">💾 Guardar y publicar balance</button>
+        <span class="msg" id="saveMsg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ DASHBOARD ═══════════ -->
+  <div class="panel" id="panel-dash">
+    <div class="dash" id="dashContent">
+      <div class="empty-state">Aún no hay registros guardados.<br>Complete el formulario en la pestaña «Registro de Datos».</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OBRAS Y SERVICIOS ═══════════ -->
+  <div class="panel" id="panel-obras">
+    <div class="dash">
+      <h1>OBRAS Y SERVICIOS</h1>
+      <div class="camp">Campamento Transitorio José Gervasio Artigas</div>
+      <span class="date-pill" id="obrasFecha"></span>
+
+      <!-- Barra de avance global -->
+      <div class="progress-global" id="progressGlobal"></div>
+
+      <!-- Tarjetas de avance -->
+      <div class="cards3" id="obrasStats" style="margin-top:22px"></div>
+
+      <!-- Culminadas -->
+      <div class="obras-section-title done">
+        <span class="dot-check">✓</span> Obras y Servicios Culminados / Instalados
+        <span class="count-badge" id="countDone"></span>
+      </div>
+      <div class="obras-grid" id="obrasDone"></div>
+
+      <!-- En proceso -->
+      <div class="obras-section-title progress">
+        <span class="dot-work">🚧</span> Obras en Proceso de Ejecución
+        <span class="count-badge orange" id="countProgress"></span>
+      </div>
+      <div class="obras-grid" id="obrasProgress"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CARGAR / EDITAR OBRAS ═══════════ -->
+  <div class="panel" id="panel-obrasEdit">
+    <div class="sheet">
+      <h2>Cargar y Actualizar Obras</h2>
+      <div class="sub">Campamento Transitorio José Gervasio Artigas — Gestión de obras y servicios</div>
+
+      <div class="link-note" style="background:var(--pill);border-color:var(--card-border);color:var(--navy)">
+        <span>🔗 Los cambios que guardes aquí se reflejan al instante en la pestaña «Obras y Servicios» y se sincronizan entre máquinas.</span>
+        <span id="obrasEditSync">Sincronizando…</span>
+      </div>
+
+      <div class="grid">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <fieldset>
+            <div class="fs-title">Datos de la Obra</div>
+            <div class="row"><label>ID (único):</label><input type="text" id="o_id" placeholder="Ej. O16" maxlength="10"></div>
+            <div class="row"><label>Nombre:</label><input type="text" id="o_nombre" placeholder="Ej. Instalación de Duchas"></div>
+            <div class="row"><label>Ícono:</label>
+              <select id="o_icon">
+                <option value="litera">🛏 Literas / camas</option>
+                <option value="bano">🚻 Baños</option>
+                <option value="plaza">🏞 Plaza / esparcimiento</option>
+                <option value="parque">🤸 Parque / gimnasio</option>
+                <option value="rayo">⚡ Eléctrico</option>
+                <option value="medico">➕ Médico / salud</option>
+                <option value="planta">🔌 Planta eléctrica</option>
+                <option value="plomeria">🔧 Plomería</option>
+                <option value="agua">💧 Agua / potabilizadora</option>
+                <option value="ropa">👕 Lavandería / ropa</option>
+                <option value="cocina">🍳 Cocina</option>
+                <option value="ducha">🚿 Duchas</option>
+                <option value="camara">📹 Cámaras / seguridad</option>
+                <option value="pintura">🎨 Pintura</option>
+                <option value="aisla">🛌 Sala de aislamiento</option>
+              </select>
+            </div>
+            <div class="row"><label>Descripción:</label><input type="text" id="o_desc" placeholder="Detalle de la obra"></div>
+          </fieldset>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <fieldset>
+            <div class="fs-title">Estado y Avance</div>
+            <div class="row"><label>Estado:</label>
+              <select id="o_estado" onchange="autoAvance()">
+                <option value="progress">🚧 En proceso de ejecución</option>
+                <option value="done">✓ Culminado / instalado</option>
+              </select>
+            </div>
+            <div class="row"><label>Avance (%):</label><input type="number" min="0" max="100" id="o_avance" value="0"></div>
+            <div class="row"><label>Fecha (fin o est.):</label><input type="text" id="o_fecha" placeholder="Ej. 7/7/2026"></div>
+            <div class="row"><label>Orden de aparición:</label><input type="number" min="1" id="o_orden" value="99"></div>
+          </fieldset>
+
+          <div class="form-foot">
+            <button class="btn primary" id="btnSaveObra" onclick="saveObra()">💾 Guardar obra</button>
+            <button class="btn ghost" onclick="limpiarFormObra()">✕ Nuevo</button>
+            <span class="msg" id="saveObraMsg"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Obras Registradas</div>
+      <div class="search-bar">
+        <button class="btn primary" onclick="exportarExcelObras()">⬇ Exportar a Excel</button>
+        <button class="btn" onclick="$('fileObras').click()">📥 Importar Excel</button>
+        <button class="btn" onclick="descargarPlantillaObras()">📄 Descargar plantilla</button>
+        <input type="file" id="fileObras" accept=".xlsx,.xls" class="hidden" onchange="procesarImportObras(event)">
+      </div>
+      <div class="tabla-wrap">
+        <table class="personas">
+          <thead>
+            <tr><th>ID</th><th>Nombre</th><th>Estado</th><th>Avance</th><th>Fecha</th><th>Orden</th><th></th></tr>
+          </thead>
+          <tbody id="obrasEditTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIGURACIÓN — pegue aquí la URL /exec del Apps Script
+═══════════════════════════════════════════════════════════════ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRRFTjzWryFmGLDjAG795ZMdSi84o2vGXm6VoHgOFHfnvx5u1ttNEfTlwg_WIgv1k/exec";
+const REFRESH_SECONDS = 60;
+
+// Logo institucional (Banco del Tesoro) — embebido en base64 para que funcione
+// sin depender de un archivo externo al alojar en GitHub Pages
+const LOGO_BDT_B64 = "data:image/png;base64,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";
+
+const NUM_IDS = ['amF','amM','adF','adM','lacNinas','lacNinos','noLacNinas','noLacNinos',
+  'adolF','adolM','nucleos','capacidadInstalada','embarazadas','lactancia',
+  'disF','disM','croF','croM','perro','loro','otrasMascotas','porCarnetizar'];
+
+const $ = id => document.getElementById(id);
+const n = id => Number($(id).value) || 0;
+
+/* ── Pestañas ── */
+function showTab(which){
+  ['personas','form','dash','obras','obrasEdit'].forEach(w=>{
+    $('panel-'+w).classList.toggle('active', w===which);
+    $('tab'+w.charAt(0).toUpperCase()+w.slice(1)).classList.toggle('active', w===which);
+  });
+  if (which === 'obras') renderObras();
+  if (which === 'obrasEdit') renderObrasEditTable();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DATOS PERSONALES — lógica de censo individual
+═══════════════════════════════════════════════════════════════ */
+let PERSONAS = [];
+
+// Campos del formato oficial (deben coincidir con KEYS_PERSONAS del Code.gs)
+const CAMPOS_PERSONA = [
+  'idRegistro','fechaIngreso','motivo','nroIntegrantes','nroBrazalete',
+  'remitidoDesde','parentesco','nombres','jefeFamilia','cedula',
+  'cedulaJefe','fechaNacimiento','edad','sexo','contacto',
+  'direccionOrigen','vieneSolo','mascota','especieMascota','cantidadMascotas',
+  'gradoInstruccion','trabaja','indiqueTrabajo','tallaBlusa',
+  'tallaPantalon','tallaCalzado','discapacidad','indiqueDiscapacidad',
+  'cronica','indiqueEnfermedad','tratamiento','especifiqueTratamiento',
+  'controlMedico','indiqueControl','lactancia','embarazada',
+  'observaciones','ubicacionAula','registradoSaime','censado','carnetizado',
+  'fechaEgreso','motivoEgreso','grupoEtario','registradoPor'
+];
+// Etiquetas legibles para exportación a Excel
+const CAMPOS_LABEL = {
+  idRegistro:'ID REGISTRO', fechaIngreso:'FECHA DE INGRESO', motivo:'MOTIVO',
+  nroIntegrantes:'NRO. DE INTEGRANTES', nroBrazalete:'NRO DE BRAZALETE', remitidoDesde:'REMITIDO DESDE',
+  parentesco:'PARENTESCO', nombres:'NOMBRES Y APELLIDOS', jefeFamilia:'JEFE DE FAMILIA', cedula:'N° CÉDULA',
+  cedulaJefe:'N° CÉDULA JEFE', fechaNacimiento:'FECHA DE NACIMIENTO', edad:'EDAD', sexo:'SEXO', contacto:'N° CONTACTO',
+  direccionOrigen:'DIRECCION DE ORIGEN', vieneSolo:'¿VIENE SOLO O SOLA?', mascota:'MASCOTA', especieMascota:'ESPECIE MASCOTA',
+  cantidadMascotas:'CANTIDAD MASCOTAS', gradoInstruccion:'GRADO DE INSTRUCCIÓN', trabaja:'TRABAJA ACTUALMENTE',
+  indiqueTrabajo:'OCUPACIÓN', tallaBlusa:'TALLA BLUSA/CAMISA', tallaPantalon:'TALLA PANTALÓN', tallaCalzado:'TALLA CALZADO',
+  discapacidad:'PRESENTA DISCAPACIDAD', indiqueDiscapacidad:'INDIQUE DISCAPACIDAD', cronica:'ENFERMEDAD CRÓNICA',
+  indiqueEnfermedad:'INDIQUE ENFERMEDAD', tratamiento:'TRATAMIENTO MÉDICO', especifiqueTratamiento:'ESPECIFIQUE TRATAMIENTO',
+  controlMedico:'TIENE CONTROL MÉDICO', indiqueControl:'INDIQUE CONTROL', lactancia:'¿EN LACTANCIA?', embarazada:'¿EMBARAZADA?',
+  observaciones:'OBSERVACIONES', ubicacionAula:'UBICACIÓN: AULA', registradoSaime:'REGISTRADO EN SAIME', censado:'CENSADO',
+  carnetizado:'CARNETIZADO', fechaEgreso:'FECHA DE EGRESO', motivoEgreso:'MOTIVO DE EGRESO', grupoEtario:'GRUPO ETARIO',
+  registradoPor:'REGISTRADO POR'
+};
+
+function calcularEdad(fechaStr){
+  if (!fechaStr) return null;
+  const hoy = new Date();
+  const nac = new Date(fechaStr + 'T00:00:00');
+  if (isNaN(nac)) return null;
+  let edad = hoy.getFullYear() - nac.getFullYear();
+  const m = hoy.getMonth() - nac.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+  return Math.max(edad, 0);
+}
+
+function calcularGrupo(edad){
+  if (edad === null) return null;
+  if (edad <= 2) return 'lactante';
+  if (edad <= 12) return 'nino';
+  if (edad <= 17) return 'adolescente';
+  if (edad <= 60) return 'adulto';
+  return 'adultoMayor';
+}
+
+const GRUPO_LABEL = {
+  lactante: 'Lactante (0–2 años)',
+  nino: 'No Lactante (3–12 años)',
+  adolescente: 'Adolescente (13–17 años)',
+  adulto: 'Adulto (18–60 años)',
+  adultoMayor: 'Adulto Mayor (60+ años)'
+};
+
+/* ── Toggles condicionales (lógica del formato) ── */
+function actualizarEdadGrupo(){
+  const edad = calcularEdad($('p_fechaNacimiento').value);
+  const grupo = calcularGrupo(edad);
+  $('p_edadGrupo').textContent = (edad === null) ? '—' : `${edad} años · ${GRUPO_LABEL[grupo]}`;
+
+  const esFemenino = $('p_sexo').value === 'Femenino';
+  // Embarazo: mujeres en edad fértil aproximada
+  const mostrarEmbarazo = esFemenino && edad !== null && edad >= 11 && edad <= 55;
+  $('row_embarazada').classList.toggle('hidden', !mostrarEmbarazo);
+  if (!mostrarEmbarazo) $('p_embarazada').value = 'No';
+  // Lactancia: mujeres
+  $('row_lactanciaP').classList.toggle('hidden', !esFemenino);
+  if (!esFemenino) $('p_lactancia').value = 'No';
+  $('hint_atencion').classList.toggle('hidden', mostrarEmbarazo || esFemenino);
+
+  // Cédula del jefe: solo si es menor de edad (0-17)
+  const esMenor = edad !== null && edad < 18;
+  $('row_cedulaJefe').classList.toggle('hidden', !esMenor);
+  if (!esMenor) $('p_cedulaJefe').value = '';
+}
+$('p_fechaNacimiento').addEventListener('change', actualizarEdadGrupo);
+
+function toggleNucleo(){
+  const solo = $('p_vieneSolo').value === 'Sí';
+  $('row_jefeFamilia').classList.toggle('hidden', solo);
+  $('row_parentesco').classList.toggle('hidden', solo);
+  if (solo){
+    $('p_jefeFamilia').value = ''; $('p_parentesco').value = 'No familiar';
+    $('p_nroIntegrantes').value = 1;
+  }
+}
+function toggleMascota(){
+  const tiene = $('p_mascota').value === 'Sí';
+  $('row_especieMascota').classList.toggle('hidden', !tiene);
+  $('row_cantidadMascotas').classList.toggle('hidden', !tiene);
+  if (!tiene){ $('p_especieMascota').value=''; $('p_cantidadMascotas').value=0; }
+}
+function toggleTrabajo(){
+  const t = $('p_trabaja').value === 'Sí';
+  $('row_indiqueTrabajo').classList.toggle('hidden', !t);
+  if (!t) $('p_indiqueTrabajo').value = '';
+}
+function toggleSalud(){
+  const pairs = [
+    ['p_discapacidad','row_indiqueDiscapacidad','p_indiqueDiscapacidad'],
+    ['p_cronica','row_indiqueEnfermedad','p_indiqueEnfermedad'],
+    ['p_tratamiento','row_especifiqueTratamiento','p_especifiqueTratamiento'],
+    ['p_controlMedico','row_indiqueControl','p_indiqueControl']
+  ];
+  pairs.forEach(([sel,row,inp])=>{
+    const si = $(sel).value === 'Sí';
+    $(row).classList.toggle('hidden', !si);
+    if (!si) $(inp).value = '';
+  });
+}
+
+function validarCedula(cedula){
+  return /^[VEve][-\s]?\d{5,9}$/.test(cedula.trim());
+}
+
+/** Genera un ID de registro correlativo tipo Código-001 */
+function generarIdRegistro(){
+  let max = 0;
+  PERSONAS.forEach(p => {
+    const m = String(p.idRegistro||'').match(/(\d+)\s*$/);
+    if (m) max = Math.max(max, parseInt(m[1],10));
+  });
+  return 'Código-' + String(max + 1).padStart(3,'0');
+}
+
+function limpiarFormPersona(){
+  ['p_motivo','p_remitidoDesde','p_nroBrazalete','p_jefeFamilia','p_nombres','p_cedula','p_cedulaJefe',
+   'p_fechaNacimiento','p_contacto','p_direccionOrigen','p_indiqueTrabajo','p_tallaBlusa','p_tallaPantalon',
+   'p_tallaCalzado','p_indiqueDiscapacidad','p_indiqueEnfermedad','p_especifiqueTratamiento','p_indiqueControl',
+   'p_observaciones','p_ubicacionAula','p_fechaEgreso','p_motivoEgreso'].forEach(id => $(id).value = '');
+  $('p_parentesco').value=''; $('p_sexo').value=''; $('p_gradoInstruccion').value='';
+  $('p_vieneSolo').value='No'; $('p_mascota').value='No'; $('p_especieMascota').value=''; $('p_cantidadMascotas').value=0;
+  $('p_trabaja').value='No'; $('p_discapacidad').value='No'; $('p_cronica').value='No';
+  $('p_tratamiento').value='No'; $('p_controlMedico').value='No'; $('p_embarazada').value='No'; $('p_lactancia').value='No';
+  $('p_registradoSaime').value='No'; $('p_censado').value='Sí'; $('p_carnetizado').value='No';
+  $('p_nroIntegrantes').value=1;
+  toggleNucleo(); toggleMascota(); toggleTrabajo(); toggleSalud(); actualizarEdadGrupo();
+  $('p_idRegistro').value = generarIdRegistro();
+  $('savePersonaMsg').textContent = '';
+}
+
+function collectPersona(){
+  const edad = calcularEdad($('p_fechaNacimiento').value);
+  const map = {
+    idRegistro: $('p_idRegistro').value || generarIdRegistro(),
+    fechaIngreso: $('p_fechaIngreso').value, motivo: $('p_motivo').value.trim(),
+    nroIntegrantes: Number($('p_nroIntegrantes').value)||1, nroBrazalete: $('p_nroBrazalete').value.trim(),
+    remitidoDesde: $('p_remitidoDesde').value.trim(), parentesco: $('p_parentesco').value,
+    nombres: $('p_nombres').value.trim(), jefeFamilia: $('p_jefeFamilia').value.trim(),
+    cedula: $('p_cedula').value.trim().toUpperCase(), cedulaJefe: $('p_cedulaJefe').value.trim().toUpperCase(),
+    fechaNacimiento: $('p_fechaNacimiento').value, edad, sexo: $('p_sexo').value,
+    contacto: $('p_contacto').value.trim(), direccionOrigen: $('p_direccionOrigen').value.trim(),
+    vieneSolo: $('p_vieneSolo').value, mascota: $('p_mascota').value, especieMascota: $('p_especieMascota').value,
+    cantidadMascotas: Number($('p_cantidadMascotas').value)||0, gradoInstruccion: $('p_gradoInstruccion').value,
+    trabaja: $('p_trabaja').value, indiqueTrabajo: $('p_indiqueTrabajo').value.trim(),
+    tallaBlusa: $('p_tallaBlusa').value.trim(), tallaPantalon: $('p_tallaPantalon').value.trim(),
+    tallaCalzado: $('p_tallaCalzado').value.trim(), discapacidad: $('p_discapacidad').value,
+    indiqueDiscapacidad: $('p_indiqueDiscapacidad').value.trim(), cronica: $('p_cronica').value,
+    indiqueEnfermedad: $('p_indiqueEnfermedad').value.trim(), tratamiento: $('p_tratamiento').value,
+    especifiqueTratamiento: $('p_especifiqueTratamiento').value.trim(), controlMedico: $('p_controlMedico').value,
+    indiqueControl: $('p_indiqueControl').value.trim(), lactancia: $('p_lactancia').value,
+    embarazada: $('p_embarazada').value, observaciones: $('p_observaciones').value.trim(),
+    ubicacionAula: $('p_ubicacionAula').value.trim(), registradoSaime: $('p_registradoSaime').value,
+    censado: $('p_censado').value, carnetizado: $('p_carnetizado').value,
+    fechaEgreso: $('p_fechaEgreso').value, motivoEgreso: $('p_motivoEgreso').value.trim(),
+    grupoEtario: calcularGrupo(edad), registradoPor: $('p_registradoPor').value.trim()
+  };
+  map.tipo = 'persona'; map.accion = 'guardar';
+  return map;
+}
+
+async function savePersona(){
+  const msg = $('savePersonaMsg'), btn = $('btnSavePersona');
+  const data = collectPersona();
+
+  // ── Validaciones ──
+  if (!data.nombres){
+    msg.textContent = '✗ El nombre y apellido son obligatorios.'; msg.className = 'msg err'; return;
+  }
+  if (!data.fechaNacimiento || data.edad === null){
+    msg.textContent = '✗ Ingrese una fecha de nacimiento válida.'; msg.className = 'msg err'; return;
+  }
+  if (!data.sexo){
+    msg.textContent = '✗ Seleccione el sexo.'; msg.className = 'msg err'; return;
+  }
+  // Cédula obligatoria solo para mayores de edad; menores pueden ir sin cédula propia
+  const esMenor = data.edad < 18;
+  if (!esMenor){
+    if (!data.cedula || !validarCedula(data.cedula)){
+      msg.textContent = '✗ Cédula inválida. Formato: V-12345678 o E-12345678'; msg.className = 'msg err'; return;
+    }
+  } else if (data.cedula && !validarCedula(data.cedula)){
+    msg.textContent = '✗ La cédula ingresada no tiene un formato válido.'; msg.className = 'msg err'; return;
+  }
+  if (data.cedula && PERSONAS.some(p => String(p.cedula).toUpperCase() === data.cedula)){
+    msg.textContent = '✗ Ya existe una persona registrada con esa cédula.'; msg.className = 'msg err'; return;
+  }
+  if (!esMenor && (!data.cedula)){
+    // sin cédula un adulto no puede identificarse
+    msg.textContent = '✗ Un adulto requiere cédula.'; msg.className = 'msg err'; return;
+  }
+  // Si es menor sin cédula, se identifica con un ID interno para evitar choques
+  if (!data.cedula) data.cedula = data.idRegistro;
+
+  btn.disabled = true; msg.textContent = 'Guardando…'; msg.className = 'msg';
+  try{
+    if (SCRIPT_URL){
+      const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(data) });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'Error del servidor');
+    } else {
+      data.timestamp = new Date().toISOString();
+      PERSONAS.push(data);
+      localStorage.setItem('personasConopoima', JSON.stringify(PERSONAS));
+    }
+    msg.textContent = '✓ Persona registrada (' + data.idRegistro + ').'; msg.className = 'msg ok';
+    limpiarFormPersona();
+    await loadPersonas(false);
+  }catch(err){
+    msg.textContent = '✗ No se pudo guardar: ' + err.message; msg.className = 'msg err';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function deletePersona(cedula){
+  if (!confirm('¿Eliminar el registro ' + cedula + '?')) return;
+  try{
+    if (SCRIPT_URL){
+      const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ tipo:'persona', accion:'eliminar', cedula }) });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'Error del servidor');
+    } else {
+      PERSONAS = PERSONAS.filter(p => String(p.cedula).toUpperCase() !== cedula.toUpperCase());
+      localStorage.setItem('personasConopoima', JSON.stringify(PERSONAS));
+    }
+    await loadPersonas(false);
+  }catch(err){
+    alert('No se pudo eliminar: ' + err.message);
+  }
+}
+
+async function loadPersonas(showFeedback){
+  try{
+    if (SCRIPT_URL){
+      const res = await fetch(SCRIPT_URL + '?tipo=personas&t=' + Date.now());
+      const out = await res.json();
+      if (out.ok) PERSONAS = out.personas || [];
+    } else {
+      const raw = localStorage.getItem('personasConopoima');
+      PERSONAS = raw ? JSON.parse(raw) : [];
+    }
+    renderPersonasTable(PERSONAS);
+    renderSummaryPills(PERSONAS);
+    sincronizarDesdePersonas();
+    if (!$('p_idRegistro').value) $('p_idRegistro').value = generarIdRegistro();
+  }catch(err){
+    if (showFeedback) alert('No se pudo actualizar el censo: ' + err.message);
+  }
+}
+
+function renderSummaryPills(list){
+  const total = list.length;
+  const nucleos = new Set(list.map(p => p.jefeFamilia).filter(Boolean)).size;
+  const fem = list.filter(p => p.sexo === 'Femenino').length;
+  const masc = list.filter(p => p.sexo === 'Masculino').length;
+  const nna = list.filter(p => ['lactante','nino','adolescente'].includes(p.grupoEtario)).length;
+  $('summaryPills').innerHTML = `
+    <span class="pill-stat">Total censados: <b>${total}</b></span>
+    <span class="pill-stat">Femeninos: <b>${fem}</b></span>
+    <span class="pill-stat">Masculinos: <b>${masc}</b></span>
+    <span class="pill-stat">NNA: <b>${nna}</b></span>
+    <span class="pill-stat">Núcleos familiares: <b>${nucleos}</b></span>
+  `;
+}
+
+function renderPersonasTable(list){
+  const tbody = $('personasTbody');
+  if (!list.length){
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-mini">Aún no hay personas registradas.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(p => `
+    <tr>
+      <td>${p.idRegistro || ''}</td>
+      <td>${p.cedula || ''}</td>
+      <td>${p.nombres || ''}</td>
+      <td>${p.edad ?? ''}</td>
+      <td><span class="badge ${p.grupoEtario||''}">${GRUPO_LABEL[p.grupoEtario] || p.grupoEtario || ''}</span></td>
+      <td>${p.sexo || ''}</td>
+      <td>${p.parentesco || ''}</td>
+      <td>${p.jefeFamilia || ''}</td>
+      <td>${p.contacto || ''}</td>
+      <td>${p.ubicacionAula || ''}</td>
+      <td><button class="del-btn" title="Eliminar" onclick="deletePersona('${(p.cedula||'').replace(/'/g,"")}')">🗑</button></td>
+    </tr>
+  `).join('');
+}
+
+function filtrarPersonas(){
+  const q = $('buscarPersona').value.trim().toLowerCase();
+  if (!q){ renderPersonasTable(PERSONAS); return; }
+  const filtrado = PERSONAS.filter(p =>
+    String(p.cedula).toLowerCase().includes(q) ||
+    String(p.nombres).toLowerCase().includes(q) ||
+    String(p.jefeFamilia).toLowerCase().includes(q) ||
+    String(p.ubicacionAula).toLowerCase().includes(q)
+  );
+  renderPersonasTable(filtrado);
+}
+
+/** Exporta el censo completo a un archivo Excel real (.xlsx) con la
+ *  estructura EXACTA de las casillas del sistema (mismos encabezados
+ *  que se usan al importar). */
+function exportarExcel(){
+  if (typeof XLSX === 'undefined'){ alert('No se pudo cargar el generador de Excel. Verifique su conexión.'); return; }
+  const cols = CAMPOS_PERSONA;
+  const encabezados = cols.map(k => CAMPOS_LABEL[k] || k);
+  // Fila de encabezados + una fila por persona (o una fila vacía de ejemplo si no hay datos)
+  const filas = PERSONAS.length
+    ? PERSONAS.map(p => cols.map(k => {
+        let v = p[k];
+        if (k === 'grupoEtario') v = GRUPO_LABEL[v] || v || '';
+        return v ?? '';
+      }))
+    : [cols.map(() => '')];
+  const aoa = [encabezados, ...filas];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = cols.map(() => ({ wch: 20 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Censo');
+  const hoy = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Censo_Conopoima_${hoy}.xlsx`);
+}
+
+/** Descarga una PLANTILLA vacía de Excel para que el usuario la llene
+ *  y luego la importe. Los encabezados coinciden con los del sistema. */
+function descargarPlantillaPersonas(){
+  if (typeof XLSX === 'undefined'){ alert('No se pudo cargar el generador de Excel.'); return; }
+  const encabezados = CAMPOS_PERSONA.map(k => CAMPOS_LABEL[k] || k);
+  const ws = XLSX.utils.aoa_to_sheet([encabezados]);
+  ws['!cols'] = CAMPOS_PERSONA.map(() => ({ wch: 20 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Censo');
+  XLSX.writeFile(wb, 'Plantilla_Censo_Conopoima.xlsx');
+}
+
+/** Mapa inverso: encabezado del Excel (en mayúsculas, sin acentos) -> clave interna.
+ *  Permite que el usuario use las etiquetas visibles del sistema en su Excel. */
+function construirMapaEncabezados(campos, labels){
+  const norm = s => String(s||'').trim().toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,''); // quita acentos
+  const mapa = {};
+  campos.forEach(k => {
+    mapa[norm(labels[k] || k)] = k; // por etiqueta
+    mapa[norm(k)] = k;              // por clave interna (respaldo)
+  });
+  return { mapa, norm };
+}
+
+/** Importa personas desde un archivo Excel llenado por el usuario. */
+async function procesarImportPersonas(event){
+  const file = event.target.files[0];
+  event.target.value = ''; // permite reimportar el mismo archivo
+  if (!file) return;
+  if (typeof XLSX === 'undefined'){ alert('No se pudo cargar el lector de Excel.'); return; }
+
+  try{
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data, { type:'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+    if (rows.length < 2){ alert('El archivo no contiene filas de datos.'); return; }
+
+    const { mapa, norm } = construirMapaEncabezados(CAMPOS_PERSONA, CAMPOS_LABEL);
+    const encabezados = rows[0].map(h => mapa[norm(h)] || null);
+
+    let importados = 0, omitidos = 0, errores = [];
+    const cedulasExistentes = new Set(PERSONAS.map(p => String(p.cedula).toUpperCase()));
+
+    for (let i = 1; i < rows.length; i++){
+      const fila = rows[i];
+      if (fila.every(c => String(c).trim() === '')) continue; // fila vacía
+
+      const p = { tipo:'persona', accion:'guardar' };
+      encabezados.forEach((clave, idx) => { if (clave) p[clave] = fila[idx]; });
+
+      // ── Lógica: normalizar y completar campos derivados ──
+      p.cedula = String(p.cedula||'').trim().toUpperCase();
+      p.nombres = String(p.nombres||'').trim();
+      p.sexo = normalizarSexo(p.sexo);
+      const fechaISO = normalizarFecha(p.fechaNacimiento);
+      p.fechaNacimiento = fechaISO;
+      const edad = calcularEdad(fechaISO);
+      p.edad = edad;
+      p.grupoEtario = calcularGrupo(edad);
+      // Normalizar Sí/No de los campos booleanos
+      ['mascota','trabaja','discapacidad','cronica','tratamiento','controlMedico',
+       'lactancia','embarazada','registradoSaime','censado','carnetizado','vieneSolo']
+        .forEach(k => { if (p[k] !== undefined) p[k] = normalizarSiNo(p[k]); });
+
+      // Validaciones mínimas
+      if (!p.nombres){ omitidos++; errores.push(`Fila ${i+1}: sin nombre`); continue; }
+      if (edad === null){ omitidos++; errores.push(`Fila ${i+1}: fecha de nacimiento inválida`); continue; }
+      if (!p.sexo){ omitidos++; errores.push(`Fila ${i+1}: sexo inválido`); continue; }
+      const esMenor = edad < 18;
+      if (!esMenor && (!p.cedula || !validarCedula(p.cedula))){
+        omitidos++; errores.push(`Fila ${i+1}: cédula inválida para adulto`); continue;
+      }
+      if (!p.cedula) p.cedula = p.idRegistro || ('IMP-' + Date.now() + '-' + i);
+      if (cedulasExistentes.has(p.cedula.toUpperCase())){
+        omitidos++; errores.push(`Fila ${i+1}: cédula ${p.cedula} ya existe`); continue;
+      }
+      if (!p.idRegistro) p.idRegistro = generarIdRegistroImport(importados);
+
+      // Guardar
+      if (SCRIPT_URL){
+        const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(p) });
+        const out = await res.json();
+        if (!out.ok){ omitidos++; errores.push(`Fila ${i+1}: ${out.error||'error del servidor'}`); continue; }
+      } else {
+        p.timestamp = new Date().toISOString();
+        PERSONAS.push(p);
+      }
+      cedulasExistentes.add(p.cedula.toUpperCase());
+      importados++;
+    }
+
+    if (!SCRIPT_URL) localStorage.setItem('personasConopoima', JSON.stringify(PERSONAS));
+    await loadPersonas(false);
+
+    let msg = `Importación finalizada.\n✓ ${importados} registro(s) importado(s).`;
+    if (omitidos) msg += `\n✗ ${omitidos} omitido(s).`;
+    if (errores.length) msg += `\n\nDetalles:\n` + errores.slice(0,10).join('\n') + (errores.length>10 ? `\n…y ${errores.length-10} más.` : '');
+    alert(msg);
+  }catch(err){
+    alert('No se pudo leer el archivo: ' + err.message);
+  }
+}
+
+// Helpers de normalización para importación
+function normalizarSexo(v){
+  const s = String(v||'').trim().toUpperCase();
+  if (s.startsWith('F')) return 'Femenino';
+  if (s.startsWith('M')) return 'Masculino';
+  return '';
+}
+function normalizarSiNo(v){
+  const s = String(v||'').trim().toUpperCase();
+  if (['SI','SÍ','S','TRUE','1','X','VERDADERO'].includes(s)) return 'Sí';
+  return 'No';
+}
+function normalizarFecha(v){
+  if (!v && v !== 0) return '';
+  // Si viene como número serial de Excel
+  if (typeof v === 'number' && typeof XLSX !== 'undefined'){
+    const d = XLSX.SSF.parse_date_code(v);
+    if (d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const s = String(v).trim();
+  // dd/mm/aaaa o dd-mm-aaaa
+  let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  // aaaa-mm-dd
+  m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  return s;
+}
+function generarIdRegistroImport(offset){
+  let max = 0;
+  PERSONAS.forEach(p => { const m = String(p.idRegistro||'').match(/(\d+)\s*$/); if (m) max = Math.max(max, parseInt(m[1],10)); });
+  return 'Código-' + String(max + 1 + offset).padStart(3,'0');
+}
+
+/** Recalcula los campos vinculados del Registro de Datos a partir del censo
+ *  de Datos Personales. Se ejecuta sola cada vez que la lista de personas
+ *  cambia (al cargar, guardar o eliminar), así que ambas pestañas quedan
+ *  siempre enlazadas sin necesidad de un botón manual. */
+function sincronizarDesdePersonas(){
+  const c = { amF:0,amM:0,adF:0,adM:0,lacNinas:0,lacNinos:0,noLacNinas:0,noLacNinos:0,
+    adolF:0,adolM:0,embarazadas:0,lactancia:0,disF:0,disM:0,croF:0,croM:0 };
+  let perros=0, loros=0, otras=0;
+
+  PERSONAS.forEach(p => {
+    const f = p.sexo === 'Femenino';
+    switch(p.grupoEtario){
+      case 'adultoMayor': f ? c.amF++ : c.amM++; break;
+      case 'adulto':      f ? c.adF++ : c.adM++; break;
+      case 'lactante':    f ? c.lacNinas++ : c.lacNinos++; break;
+      case 'nino':        f ? c.noLacNinas++ : c.noLacNinos++; break;
+      case 'adolescente': f ? c.adolF++ : c.adolM++; break;
+    }
+    if (p.embarazada === 'Sí') c.embarazadas++;
+    if (p.lactancia === 'Sí') c.lactancia++;
+    if (p.discapacidad === 'Sí') { f ? c.disF++ : c.disM++; }
+    if (p.cronica === 'Sí') { f ? c.croF++ : c.croM++; }
+    if (p.mascota === 'Sí'){
+      const cant = Number(p.cantidadMascotas) || 0;
+      const esp = String(p.especieMascota||'').toLowerCase();
+      if (esp === 'perro') perros += cant;
+      else if (esp === 'loro') loros += cant;
+      else otras += cant;
+    }
+  });
+
+  const nucleos = new Set(PERSONAS.map(p => p.jefeFamilia).filter(Boolean)).size;
+
+  Object.keys(c).forEach(k => $(k).value = c[k]);
+  $('nucleos').value = nucleos;
+  $('perro').value = perros;
+  $('loro').value = loros;
+  $('otrasMascotas').value = otras;
+  recalc();
+
+  const el = $('linkSyncTime');
+  if (el) el.textContent = 'Última sincronización: ' + new Date().toLocaleTimeString('es-VE') + ` (${PERSONAS.length} personas)`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REGISTRO AGREGADO (Balance) — igual que antes
+═══════════════════════════════════════════════════════════════ */
+function addIngreso(fecha='', cantidad=''){
+  const div = document.createElement('div');
+  div.className = 'row ingreso';
+  div.innerHTML = `
+    <input type="date" value="${fecha}">
+    <input type="number" min="0" placeholder="Personas" value="${cantidad}">
+    <button type="button" class="rm" title="Eliminar" onclick="this.parentElement.remove();recalc()">×</button>`;
+  div.querySelectorAll('input').forEach(i => i.addEventListener('input', recalc));
+  $('ingresosList').appendChild(div);
+}
+function getIngresos(){
+  return [...document.querySelectorAll('#ingresosList .ingreso')].map(r => {
+    const [f, c] = r.querySelectorAll('input');
+    return { fecha: f.value, cantidad: Number(c.value) || 0 };
+  }).filter(i => i.fecha || i.cantidad);
+}
+
+function recalc(){
+  const am = n('amF') + n('amM');
+  const ad = n('adF') + n('adM');
+  const nna = n('lacNinas') + n('lacNinos') + n('noLacNinas') + n('noLacNinos') + n('adolF') + n('adolM');
+  const totF = n('amF') + n('adF') + n('lacNinas') + n('noLacNinas') + n('adolF');
+  const totM = n('amM') + n('adM') + n('lacNinos') + n('noLacNinos') + n('adolM');
+  const cens = am + ad + nna;
+  $('st_am').textContent = am;
+  $('st_ad').textContent = ad;
+  $('st_nna').textContent = nna;
+  $('st_dis').textContent = n('disF') + n('disM');
+  $('st_cro').textContent = n('croF') + n('croM');
+  $('st_masc').textContent = n('perro') + n('loro') + n('otrasMascotas');
+  $('st_ing').textContent = getIngresos().reduce((s,i)=>s+i.cantidad,0);
+  $('st_totF').textContent = totF;
+  $('st_totM').textContent = totM;
+  $('st_cens').textContent = cens;
+  $('st_ocup').textContent = cens + n('porCarnetizar');
+}
+NUM_IDS.forEach(id => $(id).addEventListener('input', recalc));
+
+function collect(){
+  const data = { registradoPor: $('registradoPor').value.trim(), ingresos: getIngresos() };
+  NUM_IDS.forEach(id => data[id] = n(id));
+  return data;
+}
+async function saveData(){
+  const btn = $('btnSave'), msg = $('saveMsg');
+  btn.disabled = true; msg.textContent = 'Guardando…'; msg.className = 'msg';
+  const data = collect();
+  try{
+    if (SCRIPT_URL){
+      const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(data) });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'Error del servidor');
+    } else {
+      data.timestamp = new Date().toISOString();
+      localStorage.setItem('balanceConopoima', JSON.stringify(data));
+    }
+    msg.textContent = '✓ Guardado. Balance actualizado.';
+    msg.className = 'msg ok';
+    await loadLatest(false);
+    showTab('dash');
+  }catch(err){
+    msg.textContent = '✗ No se pudo guardar: ' + err.message;
+    msg.className = 'msg err';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function loadLatest(showFeedback){
+  const bar = $('syncBar'), txt = $('syncText');
+  try{
+    let data = null;
+    if (SCRIPT_URL){
+      const res = await fetch(SCRIPT_URL + '?t=' + Date.now());
+      const out = await res.json();
+      if (out.ok && !out.empty) data = out;
+      bar.classList.add('online');
+      txt.textContent = 'Conectado a Google Sheets · última consulta ' + new Date().toLocaleTimeString('es-VE');
+    } else {
+      const raw = localStorage.getItem('balanceConopoima');
+      if (raw) data = JSON.parse(raw);
+      txt.textContent = 'Modo local (configure SCRIPT_URL para sincronizar entre máquinas)';
+    }
+    if (data){ renderDash(data); fillForm(data); }
+  }catch(err){
+    txt.textContent = 'Error de conexión: ' + err.message;
+    bar.classList.remove('online');
+    if (showFeedback) alert('No se pudo actualizar: ' + err.message);
+  }
+}
+
+function fillForm(d){
+  NUM_IDS.forEach(id => { if (d[id] !== undefined && d[id] !== '') $(id).value = d[id]; });
+  if (d.registradoPor) $('registradoPor').value = d.registradoPor;
+  $('ingresosList').innerHTML = '';
+  (d.ingresos || []).forEach(i => addIngreso(formatDateInput(i.fecha), i.cantidad));
+  recalc();
+}
+function formatDateInput(f){
+  if (!f) return '';
+  const d = new Date(f);
+  return isNaN(d) ? String(f).slice(0,10) : d.toISOString().slice(0,10);
+}
+
+const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+function fmtFecha(ts){
+  const d = ts ? new Date(ts) : new Date();
+  if (isNaN(d)) return String(ts);
+  let h = d.getHours(), ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  const min = String(d.getMinutes()).padStart(2,'0');
+  return `${d.getDate()} DE ${MESES[d.getMonth()]} DE ${d.getFullYear()} — ${h}:${min} ${ampm}`;
+}
+
+const ICONS = {
+  cama:'<svg viewBox="0 0 24 24"><path d="M3 6v12h2v-3h14v3h2v-8a3 3 0 0 0-3-3h-7v5H5V6H3zm4 3.5A1.5 1.5 0 1 1 7 9.49 1.5 1.5 0 0 1 7 9.5z"/></svg>',
+  carpa:'<svg viewBox="0 0 24 24"><path d="M12 8 3 20h6l3-5 3 5h6L12 8zm-1-6h2v3.6l1.8-1.3 1.1 1.6L12 8.7 8.1 5.9l1.1-1.6L11 5.6V2z"/></svg>',
+  nino:'<svg viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.2"/><path d="M12 8c-2 0-3.5 1-3.5 3v4h1.8V22h3.4v-7h1.8v-4c0-2-1.5-3-3.5-3z"/></svg>',
+  adultos:'<svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="2.6"/><circle cx="16.5" cy="7.5" r="2.1"/><path d="M9 10c-2.8 0-4.5 1.5-4.5 4v3h2V22h5v-5h2v-3c0-2.5-1.7-4-4.5-4zm7.5 1.5c-.7 0-1.4.15-1.9.45.9.9 1.4 2.1 1.4 3.55v3h4v-3.5c0-2.2-1.4-3.5-3.5-3.5z"/></svg>',
+  mayor:'<svg viewBox="0 0 24 24"><circle cx="11" cy="4.5" r="2.2"/><path d="M11 8c-2 0-3.4 1.2-3.4 3.2V15h1.8v7h3.2v-7h1.8v-3.8C14.4 9.2 13 8 11 8zm5.5 3.5h1.5V22h-1.5z"/></svg>',
+  casa:'<svg viewBox="0 0 24 24"><path d="M12 3 3 10h2v10h6v-6h2v6h6V10h2L12 3z"/></svg>',
+  pata:'<svg viewBox="0 0 24 24"><circle cx="7" cy="8" r="1.8"/><circle cx="12" cy="6" r="1.8"/><circle cx="17" cy="8" r="1.8"/><circle cx="19.5" cy="12" r="1.6"/><circle cx="4.5" cy="12" r="1.6"/><path d="M12 11c-2.6 0-5 2.4-5 5 0 1.7 1.3 3 3 3 .8 0 1.4-.3 2-.7.6.4 1.2.7 2 .7 1.7 0 3-1.3 3-3 0-2.6-2.4-5-5-5z"/></svg>',
+  silla:'<svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M12.5 7h-2v7h5v-1.8h-3V7zm-1 8.5A4.5 4.5 0 1 0 16 20h-1.9a2.7 2.7 0 1 1-2.6-3.6V15.5zm5.5.5 1.8 4H21l-2.2-5H16v1.5h1z"/></svg>'
+};
+
+function card(icon, label, hint, num, cap){
+  return `<div class="card">
+    <div class="icon">${ICONS[icon]}</div>
+    <div class="label">${label} ${hint?`<span class="hint">${hint}</span>`:''}</div>
+    <div class="num">${Number(num).toLocaleString('es-VE')}</div>
+    <div class="cap">${cap}</div>
+  </div>`;
+}
+
+function renderDash(d){
+  const num = k => Number(d[k]) || 0;
+  const am  = num('amF') + num('amM');
+  const ad  = num('adF') + num('adM');
+  const nna = num('lacNinas') + num('lacNinos') + num('noLacNinas') + num('noLacNinos') + num('adolF') + num('adolM');
+  const cens = am + ad + nna;
+  const pend = num('porCarnetizar');
+  const ocupada = cens + pend;
+  const masc = num('perro') + num('loro') + num('otrasMascotas');
+  const dis = num('disF') + num('disM');
+
+  $('dashContent').innerHTML = `
+    <h1>BALANCE GENERAL DE CAPACIDAD Y ATENCIÓN</h1>
+    <div class="camp">Campamento Transitorio José Gervasio Artigas</div>
+    <span class="date-pill">${fmtFecha(d.timestamp)}</span>
+
+    <div class="cards2">
+      ${card('cama','Capacidad Instalada','',num('capacidadInstalada'),'Total de plazas')}
+      ${card('carpa','Capacidad Ocupada','',ocupada,'Personas instaladas')}
+    </div>
+
+    <div class="section-title">Desglose por Grupo de Edad</div>
+    <div class="cards3">
+      ${card('nino','Niños, Niñas y Adolescentes','(0 a 17 años)',nna,'Censados')}
+      ${card('adultos','Adultos','(18 a 60 años)',ad,'Censados')}
+      ${card('mayor','Adultos Mayores','(60 años o más)',am,'Censados')}
+    </div>
+
+    <div class="section-title">Indicadores de Control</div>
+    <div class="cards3">
+      ${card('casa','Núcleos Familiares','',num('nucleos'),'Familias')}
+      ${card('pata','Total Mascotas','',masc,'Animales')}
+      ${card('silla','Personas con Discapacidad','',dis,'Con atención esp.')}
+    </div>
+
+    ${pend > 0 ? `<div class="note"><b>Nota aclaratoria:</b> ${pend} persona${pend===1?'':'s'} se encuentra${pend===1?'':'n'} pendiente${pend===1?'':'s'} de carnetización y asignación.</div>` : ''}
+  `;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   OBRAS Y SERVICIOS
+   ─ Las obras se cargan desde Google Sheets (hoja "Obras") ─
+   ─ Se editan desde la pestaña "Cargar Obras", no aquí ─
+   estado: 'done' (culminado) | 'progress' (en ejecución)
+   avance: 0–100 (porcentaje de ejecución de esa obra)
+═══════════════════════════════════════════════════════════════ */
+// Valores por defecto (se usan solo en modo local sin Google Sheets)
+let OBRAS = [
+  { id:'O01', icon:'litera',   nombre:'Instalación de Literas',   desc:'224 unidades instaladas en su totalidad.',              estado:'done', avance:100, fecha:'6/7/2026', orden:1 },
+  { id:'O02', icon:'bano',     nombre:'Baños Portátiles',         desc:'10 unidades instaladas en áreas designadas.',           estado:'done', avance:100, fecha:'3/7/2026', orden:2 },
+  { id:'O03', icon:'plaza',    nombre:'Recuperación de Plaza',    desc:'Área de esparcimiento 100% acondicionada.',             estado:'done', avance:100, fecha:'4/7/2026', orden:3 },
+  { id:'O04', icon:'parque',   nombre:'Parque y Gimnasio',        desc:'Parque infantil y biosaludable instalados.',            estado:'done', avance:100, fecha:'4/7/2026', orden:4 },
+  { id:'O05', icon:'rayo',     nombre:'Instalaciones Eléctricas', desc:'Tendido de nuevo cableado completado.',                 estado:'done', avance:100, fecha:'5/7/2026', orden:5 },
+  { id:'O06', icon:'medico',   nombre:'Servicio Médico',          desc:'Adecuación y dotación culminada.',                      estado:'done', avance:100, fecha:'5/7/2026', orden:6 },
+  { id:'O07', icon:'planta',   nombre:'Planta Eléctrica',         desc:'Instalada y plenamente Operativa.',                     estado:'done', avance:100, fecha:'6/7/2026', orden:7 },
+  { id:'O08', icon:'plomeria', nombre:'Trabajos de Plomería',     desc:'Suministro de 5 tanques (12mil lts), piezas y conexiones.', estado:'progress', avance:60, fecha:'7/7/2026', orden:8 },
+  { id:'O09', icon:'agua',     nombre:'Planta Potabilizadora',    desc:'En proceso de adecuación e instalación.',               estado:'progress', avance:40, fecha:'7/7/2026', orden:9 },
+  { id:'O10', icon:'ropa',     nombre:'Lavandería',               desc:'Incluye 2 lavadoras, secadoras industriales y 6 morochas.', estado:'progress', avance:50, fecha:'7/7/2026', orden:10 },
+  { id:'O11', icon:'cocina',   nombre:'Adecuación de Cocina',     desc:'Área en proceso de limpieza y dotación.',               estado:'progress', avance:45, fecha:'7/7/2026', orden:11 },
+  { id:'O12', icon:'ducha',    nombre:'Instalación de Duchas',    desc:'Completadas 24 de 48 duchas (50% de avance).',          estado:'progress', avance:50, fecha:'7/7/2026', orden:12 },
+  { id:'O13', icon:'camara',   nombre:'Cámaras de Seguridad',     desc:'Instalación y configuración de 43 cámaras.',            estado:'progress', avance:55, fecha:'8/7/2026', orden:13 },
+  { id:'O14', icon:'pintura',  nombre:'Aplicación de Pintura',    desc:'Áreas interiores culminadas. Exteriores en progreso.',   estado:'progress', avance:65, fecha:'9/7/2026', orden:14 },
+  { id:'O15', icon:'aisla',    nombre:'Sala de Aislamiento',      desc:'Instalada 1 cama. Pendiente aire acondicionado y mobiliario.', estado:'progress', avance:35, fecha:'6/7/2026', orden:15 }
+];
+
+const OBRA_ICONS = {
+  litera:'<svg viewBox="0 0 24 24"><path d="M3 6v12h2v-3h14v3h2v-8a3 3 0 0 0-3-3h-7v5H5V6H3zm4 3.5A1.5 1.5 0 1 1 7 9.49 1.5 1.5 0 0 1 7 9.5z"/></svg>',
+  bano:'<svg viewBox="0 0 24 24"><circle cx="8" cy="4" r="1.8"/><circle cx="16" cy="4" r="1.8"/><path d="M7 7c-1.1 0-1.7.9-1.9 1.8L4 14h1.6l.4 8h2.9l.4-8H11L9.9 8.8C9.7 7.9 9.1 7 8 7H7zm9 0h-1c-1 0-1.6.8-1.9 1.7L11.5 15H14v7h4v-7h2.5l-2.6-6.3C17.6 7.8 17 7 16 7z"/></svg>',
+  plaza:'<svg viewBox="0 0 24 24"><path d="M12 2 8 6h3v4H7V7l-4 4 4 4v-3h4v4H8l4 4 4-4h-3v-4h4v3l4-4-4-4v3h-4V6h3l-4-4z"/></svg>',
+  parque:'<svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2.2"/><path d="M12 7c-2 0-3.5 1-3.5 3v3h1.7v7h3.6v-7h1.7v-3c0-2-1.5-3-3.5-3z"/></svg>',
+  rayo:'<svg viewBox="0 0 24 24"><path d="M13 2 4 14h5l-1 8 9-12h-5l1-8z"/></svg>',
+  medico:'<svg viewBox="0 0 24 24"><path d="M10 2v3H7v3H4v4h3v3h3v3h4v-3h3v-3h3V8h-3V5h-3V2h-4zm1 2h2v3h3v2h-3v3h-2v-3H8V7h3V4z"/></svg>',
+  planta:'<svg viewBox="0 0 24 24"><path d="M13 2 4 14h5l-1 8 9-12h-5l1-8z"/><circle cx="19" cy="5" r="2.5" fill="none" stroke-width="1.5"/></svg>',
+  plomeria:'<svg viewBox="0 0 24 24"><path d="M4 4v4h6v2H8v3a4 4 0 0 0 8 0v-1h-2v1a2 2 0 0 1-4 0v-3h4a3 3 0 0 0 3-3V4h-2v3a1 1 0 0 1-1 1h-6V4H4z"/></svg>',
+  agua:'<svg viewBox="0 0 24 24"><path d="M12 2S6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm0 17a4 4 0 0 1-4-4h1.5a2.5 2.5 0 0 0 2.5 2.5V19z"/></svg>',
+  ropa:'<svg viewBox="0 0 24 24"><path d="M9 2 4 6l2.5 3L8 8v13h8V8l1.5 1L20 6l-5-4-1.5 2h-3L9 2z"/></svg>',
+  cocina:'<svg viewBox="0 0 24 24"><path d="M4 4v5a4 4 0 0 0 3 3.9V21h2v-8.1A4 4 0 0 0 12 9V4h-1.5v4.5h-1V4H8v4.5H7V4H4zm12 0c-1.7 0-3 2-3 5v4h2v8h2V4h-1z"/></svg>',
+  ducha:'<svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5H5l2 2h10l2-2h-2a5 5 0 0 0-5-5zm-4 12v1h1v-1H8zm3 0v1h1v-1h-1zm3 0v1h1v-1h-1zm-6 3v1h1v-1H8zm3 0v1h1v-1h-1zm3 0v1h1v-1h-1zm-6 3v1h1v-1H8zm3 0v1h1v-1h-1zm3 0v1h1v-1h-1z"/></svg>',
+  camara:'<svg viewBox="0 0 24 24"><path d="M4 7h11l1 3 4-2v10l-4-2-1 3H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/></svg>',
+  pintura:'<svg viewBox="0 0 24 24"><path d="M18 2 8 12l4 4L22 6l-4-4zM6 14l-2 6 6-2-4-4zm-2 8h4l-1 1H3l1-1z"/></svg>',
+  aisla:'<svg viewBox="0 0 24 24"><path d="M2 8v10h2v-3h16v3h2v-6a3 3 0 0 0-3-3H10v4H4V8H2zm4 3a1.5 1.5 0 1 0 0-.01z"/></svg>'
+};
+
+function obraCard(o){
+  const desc = String(o.desc||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<div class="obra-card ${o.estado}">
+    <div class="o-icon">${OBRA_ICONS[o.icon]||''}</div>
+    <div class="o-name">${o.nombre||''}</div>
+    <div class="o-desc">${desc}</div>
+    <div class="o-bar"><span style="width:${o.avance}%"></span></div>
+    <div class="o-pct">${o.avance}% de avance</div>
+    <div class="o-date">${o.estado==='done' ? '📅 Fin: ' : '⏱ Est. fin: '}${o.fecha||''}</div>
+  </div>`;
+}
+
+function renderObras(){
+  const done = OBRAS.filter(o => o.estado === 'done');
+  const prog = OBRAS.filter(o => o.estado === 'progress');
+  const total = OBRAS.length;
+
+  // Avance global = promedio del avance de todas las obras
+  const global = total ? Math.round(OBRAS.reduce((s,o)=>s+o.avance,0)/total) : 0;
+
+  $('obrasFecha').textContent = fmtFecha(new Date().toISOString());
+
+  $('progressGlobal').innerHTML = `
+    <div class="pg-head">
+      <span class="pg-label">Avance Global del Campamento</span>
+      <span class="pg-pct">${global}%</span>
+    </div>
+    <div class="pg-track"><div class="pg-fill" style="width:${global}%"></div></div>
+    <div class="pg-sub">${done.length} de ${total} obras culminadas · ${prog.length} en ejecución</div>
+  `;
+
+  const promProg = prog.length ? Math.round(prog.reduce((s,o)=>s+o.avance,0)/prog.length) : 0;
+  $('obrasStats').innerHTML = `
+    ${card('casa','Total de Obras','',total,'Proyectos')}
+    ${card('cama','Culminadas','',done.length,'Al 100%')}
+    ${card('carpa','En Ejecución','',prog.length,'Avance prom. '+promProg+'%')}
+  `;
+
+  $('countDone').textContent = done.length;
+  $('countProgress').textContent = prog.length;
+  $('obrasDone').innerHTML = done.map(obraCard).join('');
+  $('obrasProgress').innerHTML = prog.map(obraCard).join('');
+}
+
+/* ── Carga y gestión de obras (conectado a Google Sheets) ── */
+async function loadObras(showFeedback){
+  try{
+    if (SCRIPT_URL){
+      const res = await fetch(SCRIPT_URL + '?tipo=obras&t=' + Date.now());
+      const out = await res.json();
+      if (out.ok && out.obras && out.obras.length) OBRAS = out.obras;
+    } else {
+      const raw = localStorage.getItem('obrasConopoima');
+      if (raw) OBRAS = JSON.parse(raw);
+    }
+    renderObras();
+    renderObrasEditTable();
+    const el = $('obrasEditSync');
+    if (el) el.textContent = 'Sincronizado ' + new Date().toLocaleTimeString('es-VE') + ` · ${OBRAS.length} obras`;
+  }catch(err){
+    if (showFeedback) alert('No se pudieron cargar las obras: ' + err.message);
+  }
+}
+
+function autoAvance(){
+  if ($('o_estado').value === 'done') $('o_avance').value = 100;
+}
+
+function limpiarFormObra(){
+  ['o_id','o_nombre','o_desc','o_fecha'].forEach(id => $(id).value='');
+  $('o_icon').value='litera'; $('o_estado').value='progress'; $('o_avance').value=0;
+  $('o_orden').value = (OBRAS.length ? Math.max(...OBRAS.map(o=>Number(o.orden)||0)) + 1 : 1);
+  $('saveObraMsg').textContent='';
+  $('btnSaveObra').textContent = '💾 Guardar obra';
+}
+
+function editarObra(id){
+  const o = OBRAS.find(x => String(x.id) === String(id));
+  if (!o) return;
+  $('o_id').value = o.id; $('o_nombre').value = o.nombre; $('o_icon').value = o.icon;
+  $('o_desc').value = o.desc; $('o_estado').value = o.estado; $('o_avance').value = o.avance;
+  $('o_fecha').value = o.fecha; $('o_orden').value = o.orden;
+  $('btnSaveObra').textContent = '💾 Actualizar obra';
+  $('saveObraMsg').textContent = 'Editando ' + o.id + ' — modifique y guarde.'; $('saveObraMsg').className='msg';
+  showTab('obrasEdit');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+async function saveObra(){
+  const msg = $('saveObraMsg'), btn = $('btnSaveObra');
+  const data = {
+    tipo:'obra', accion:'guardar',
+    id: $('o_id').value.trim() || ('O' + Date.now().toString().slice(-5)),
+    icon: $('o_icon').value, nombre: $('o_nombre').value.trim(), desc: $('o_desc').value.trim(),
+    estado: $('o_estado').value, avance: Math.min(100, Math.max(0, Number($('o_avance').value)||0)),
+    fecha: $('o_fecha').value.trim(), orden: Number($('o_orden').value)||99
+  };
+  if (!data.nombre){ msg.textContent='✗ El nombre de la obra es obligatorio.'; msg.className='msg err'; return; }
+
+  btn.disabled = true; msg.textContent='Guardando…'; msg.className='msg';
+  try{
+    if (SCRIPT_URL){
+      const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(data) });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'Error del servidor');
+    } else {
+      const i = OBRAS.findIndex(o => String(o.id) === data.id);
+      if (i >= 0) OBRAS[i] = data; else OBRAS.push(data);
+      localStorage.setItem('obrasConopoima', JSON.stringify(OBRAS));
+    }
+    msg.textContent='✓ Obra guardada ('+data.id+').'; msg.className='msg ok';
+    limpiarFormObra();
+    await loadObras(false);
+  }catch(err){
+    msg.textContent='✗ No se pudo guardar: '+err.message; msg.className='msg err';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function deleteObra(id){
+  if (!confirm('¿Eliminar la obra '+id+'?')) return;
+  try{
+    if (SCRIPT_URL){
+      const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ tipo:'obra', accion:'eliminar', id }) });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'Error del servidor');
+    } else {
+      OBRAS = OBRAS.filter(o => String(o.id) !== String(id));
+      localStorage.setItem('obrasConopoima', JSON.stringify(OBRAS));
+    }
+    await loadObras(false);
+  }catch(err){
+    alert('No se pudo eliminar: '+err.message);
+  }
+}
+
+function renderObrasEditTable(){
+  const tbody = $('obrasEditTbody');
+  if (!OBRAS.length){
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-mini">No hay obras registradas.</div></td></tr>`;
+    return;
+  }
+  const ord = [...OBRAS].sort((a,b)=>(Number(a.orden)||0)-(Number(b.orden)||0));
+  tbody.innerHTML = ord.map(o => `
+    <tr>
+      <td>${o.id||''}</td>
+      <td>${o.nombre||''}</td>
+      <td><span class="badge ${o.estado==='done'?'adulto':'nino'}">${o.estado==='done'?'Culminado':'En proceso'}</span></td>
+      <td>${o.avance}%</td>
+      <td>${o.fecha||''}</td>
+      <td>${o.orden||''}</td>
+      <td style="white-space:nowrap">
+        <button class="del-btn" title="Editar" style="color:var(--teal-dark)" onclick="editarObra('${o.id}')">✎</button>
+        <button class="del-btn" title="Eliminar" onclick="deleteObra('${o.id}')">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ── Excel de Obras ── */
+// Estructura de columnas de obras (clave interna -> etiqueta visible)
+const CAMPOS_OBRA = ['id','nombre','icon','desc','estado','avance','fecha','orden'];
+const CAMPOS_OBRA_LABEL = {
+  id:'ID', nombre:'NOMBRE', icon:'ICONO', desc:'DESCRIPCIÓN',
+  estado:'ESTADO', avance:'AVANCE (%)', fecha:'FECHA', orden:'ORDEN'
+};
+
+function exportarExcelObras(){
+  if (typeof XLSX === 'undefined'){ alert('No se pudo cargar el generador de Excel.'); return; }
+  const encabezados = CAMPOS_OBRA.map(k => CAMPOS_OBRA_LABEL[k]);
+  const filas = OBRAS.length
+    ? [...OBRAS].sort((a,b)=>(Number(a.orden)||0)-(Number(b.orden)||0)).map(o => CAMPOS_OBRA.map(k => {
+        if (k === 'estado') return o.estado === 'done' ? 'Culminado' : 'En proceso';
+        return o[k] ?? '';
+      }))
+    : [CAMPOS_OBRA.map(() => '')];
+  const ws = XLSX.utils.aoa_to_sheet([encabezados, ...filas]);
+  ws['!cols'] = [{wch:8},{wch:28},{wch:12},{wch:45},{wch:14},{wch:10},{wch:12},{wch:8}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Obras');
+  const hoy = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Obras_Conopoima_${hoy}.xlsx`);
+}
+
+function descargarPlantillaObras(){
+  if (typeof XLSX === 'undefined'){ alert('No se pudo cargar el generador de Excel.'); return; }
+  const encabezados = CAMPOS_OBRA.map(k => CAMPOS_OBRA_LABEL[k]);
+  const ws = XLSX.utils.aoa_to_sheet([encabezados]);
+  ws['!cols'] = [{wch:8},{wch:28},{wch:12},{wch:45},{wch:14},{wch:10},{wch:12},{wch:8}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Obras');
+  XLSX.writeFile(wb, 'Plantilla_Obras_Conopoima.xlsx');
+}
+
+async function procesarImportObras(event){
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  if (typeof XLSX === 'undefined'){ alert('No se pudo cargar el lector de Excel.'); return; }
+
+  try{
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data, { type:'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+    if (rows.length < 2){ alert('El archivo no contiene filas de datos.'); return; }
+
+    const { mapa, norm } = construirMapaEncabezados(CAMPOS_OBRA, CAMPOS_OBRA_LABEL);
+    const encabezados = rows[0].map(h => mapa[norm(h)] || null);
+
+    let importados = 0, omitidos = 0, errores = [];
+    const idsExistentes = new Set(OBRAS.map(o => String(o.id)));
+
+    for (let i = 1; i < rows.length; i++){
+      const fila = rows[i];
+      if (fila.every(c => String(c).trim() === '')) continue;
+
+      const o = { tipo:'obra', accion:'guardar' };
+      encabezados.forEach((clave, idx) => { if (clave) o[clave] = fila[idx]; });
+
+      o.id = String(o.id||'').trim() || ('O' + Date.now().toString().slice(-5) + i);
+      o.nombre = String(o.nombre||'').trim();
+      // Estado: acepta "Culminado"/"done"/"En proceso"/"progress"
+      const est = String(o.estado||'').trim().toLowerCase();
+      o.estado = (est.includes('culmin') || est === 'done' || est.includes('100')) ? 'done' : 'progress';
+      o.avance = Math.min(100, Math.max(0, Number(o.avance)||0));
+      if (o.estado === 'done') o.avance = 100;
+      o.orden = Number(o.orden)||99;
+      o.icon = String(o.icon||'').trim() || 'litera';
+      o.desc = String(o.desc||'').trim();
+
+      if (!o.nombre){ omitidos++; errores.push(`Fila ${i+1}: sin nombre`); continue; }
+      if (idsExistentes.has(o.id)){
+        // Si el ID ya existe, se actualiza (el backend hace upsert)
+      }
+
+      if (SCRIPT_URL){
+        const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(o) });
+        const out = await res.json();
+        if (!out.ok){ omitidos++; errores.push(`Fila ${i+1}: ${out.error||'error del servidor'}`); continue; }
+      } else {
+        const idx = OBRAS.findIndex(x => String(x.id) === o.id);
+        if (idx >= 0) OBRAS[idx] = o; else OBRAS.push(o);
+      }
+      idsExistentes.add(o.id);
+      importados++;
+    }
+
+    if (!SCRIPT_URL) localStorage.setItem('obrasConopoima', JSON.stringify(OBRAS));
+    await loadObras(false);
+
+    let msg = `Importación finalizada.\n✓ ${importados} obra(s) importada(s).`;
+    if (omitidos) msg += `\n✗ ${omitidos} omitida(s).`;
+    if (errores.length) msg += `\n\nDetalles:\n` + errores.slice(0,10).join('\n');
+    alert(msg);
+  }catch(err){
+    alert('No se pudo leer el archivo: ' + err.message);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GENERAR PDF — según la pestaña activa
+═══════════════════════════════════════════════════════════════ */
+function pdfActiva(){
+  const paneles = ['personas','form','dash','obras','obrasEdit'];
+  return paneles.find(p => $('panel-'+p).classList.contains('active')) || 'dash';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CAPTURA DE PANTALLA — para Balance General y Obras y Servicios
+   Genera una imagen PNG de la pestaña activa lista para compartir.
+═══════════════════════════════════════════════════════════════ */
+async function capturarPantalla(){
+  const tab = pdfActiva();
+  // La captura tiene sentido en las vistas visuales
+  const panelId = tab === 'obras' ? 'panel-obras'
+                : tab === 'dash'  ? 'panel-dash'
+                : null;
+  if (!panelId){
+    alert('La captura está disponible en las pestañas "Balance General" y "Obras y Servicios".');
+    return;
+  }
+  if (typeof html2canvas === 'undefined'){ alert('No se pudo cargar la herramienta de captura. Verifique su conexión.'); return; }
+
+  const nodo = $(panelId).querySelector('.dash') || $(panelId);
+  try{
+    const canvas = await html2canvas(nodo, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    const hoy = new Date().toISOString().slice(0,10);
+    const nombre = (tab === 'obras' ? 'Obras' : 'Balance') + `_Conopoima_${hoy}.png`;
+
+    canvas.toBlob(async (blob) => {
+      // Si el dispositivo permite compartir archivos (móvil), abre el menú de compartir
+      const archivo = new File([blob], nombre, { type:'image/png' });
+      if (navigator.canShare && navigator.canShare({ files:[archivo] })){
+        try{
+          await navigator.share({ files:[archivo], title:'Campamento Transitorio José Gervasio Artigas' });
+          return;
+        }catch(e){ /* si el usuario cancela, cae a la descarga */ }
+      }
+      // En escritorio: descarga la imagen
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = nombre;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  }catch(err){
+    alert('No se pudo generar la captura: ' + err.message);
+  }
+}
+
+function pdfHeader(doc, titulo){
+  doc.setFillColor(27,58,95); doc.rect(0,0,doc.internal.pageSize.getWidth(),26,'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+  doc.text(titulo, 14, 12);
+  doc.setFontSize(9); doc.setTextColor(180,220,210);
+  doc.text('Campamento Transitorio José Gervasio Artigas', 14, 19);
+  doc.setTextColor(120,120,120); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+  doc.text(fmtFecha(new Date().toISOString()), doc.internal.pageSize.getWidth()-14, 19, {align:'right'});
+  doc.setTextColor(0,0,0);
+  // Logo institucional en un recuadro blanco, esquina superior derecha
+  try{
+    const pw = doc.internal.pageSize.getWidth();
+    const logoW = 24, logoH = 24 * (135/410);
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(pw-logoW-16, 3, logoW+4, logoH+4, 1.5, 1.5, 'F');
+    doc.addImage(LOGO_BDT_B64, 'PNG', pw-logoW-14, 5, logoW, logoH);
+  }catch(e){ /* si falla la imagen, el PDF continúa sin logo */ }
+}
+
+function generarPDF(){
+  if (!window.jspdf){ alert('No se pudo cargar el generador de PDF. Verifique su conexión a internet.'); return; }
+  const { jsPDF } = window.jspdf;
+  const tab = pdfActiva();
+  const hoy = new Date().toISOString().slice(0,10);
+
+  if (tab === 'dash' || tab === 'form'){
+    generarPDFBalance(jsPDF, hoy);
+  } else if (tab === 'personas'){
+    generarPDFPersonas(jsPDF, hoy);
+  } else if (tab === 'obras' || tab === 'obrasEdit'){
+    generarPDFObras(jsPDF, hoy);
+  }
+}
+
+function generarPDFBalance(jsPDF, hoy){
+  const doc = new jsPDF();
+  pdfHeader(doc, 'BALANCE GENERAL DE CAPACIDAD Y ATENCIÓN');
+  const nn = k => Number($(k).value)||0;
+  const am=nn('amF')+nn('amM'), ad=nn('adF')+nn('adM');
+  const nna=nn('lacNinas')+nn('lacNinos')+nn('noLacNinas')+nn('noLacNinos')+nn('adolF')+nn('adolM');
+  const cens=am+ad+nna, pend=nn('porCarnetizar'), ocup=cens+pend;
+  const masc=nn('perro')+nn('loro')+nn('otrasMascotas'), dis=nn('disF')+nn('disM');
+  doc.autoTable({
+    startY: 34,
+    head: [['Indicador','Valor']],
+    body: [
+      ['Capacidad instalada (plazas)', nn('capacidadInstalada')],
+      ['Capacidad ocupada (personas)', ocup],
+      ['Niños, Niñas y Adolescentes (0-17)', nna],
+      ['Adultos (18-60)', ad],
+      ['Adultos Mayores (60+)', am],
+      ['Núcleos familiares', nn('nucleos')],
+      ['Mujeres embarazadas', nn('embarazadas')],
+      ['Mujeres en lactancia', nn('lactancia')],
+      ['Personas con discapacidad', dis],
+      ['Total mascotas', masc],
+      ['Pendientes por carnetizar', pend]
+    ],
+    headStyles:{fillColor:[46,158,143]}, styles:{fontSize:10}, columnStyles:{1:{halign:'right',fontStyle:'bold'}}
+  });
+  doc.save(`Balance_Conopoima_${hoy}.pdf`);
+}
+
+function generarPDFPersonas(jsPDF, hoy){
+  if (!PERSONAS.length){ alert('No hay personas registradas.'); return; }
+  const doc = new jsPDF({ orientation:'landscape' });
+  pdfHeader(doc, 'CENSO DE PERSONAS');
+  doc.autoTable({
+    startY: 34,
+    head: [['ID','Cédula','Nombres y Apellidos','Edad','Grupo','Sexo','Parentesco','Jefe de Familia','Aula']],
+    body: PERSONAS.map(p => [
+      p.idRegistro||'', p.cedula||'', p.nombres||'', p.edad??'',
+      (GRUPO_LABEL[p.grupoEtario]||p.grupoEtario||'').split(' (')[0],
+      p.sexo||'', p.parentesco||'', p.jefeFamilia||'', p.ubicacionAula||''
+    ]),
+    headStyles:{fillColor:[44,111,168]}, styles:{fontSize:8}, margin:{left:10,right:10}
+  });
+  doc.save(`Censo_Conopoima_${hoy}.pdf`);
+}
+
+function generarPDFObras(jsPDF, hoy){
+  const doc = new jsPDF();
+  pdfHeader(doc, 'OBRAS Y SERVICIOS');
+  const total=OBRAS.length;
+  const done=OBRAS.filter(o=>o.estado==='done');
+  const global = total ? Math.round(OBRAS.reduce((s,o)=>s+Number(o.avance||0),0)/total) : 0;
+  doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text(`Avance global: ${global}%   ·   Culminadas: ${done.length}/${total}`, 14, 33);
+  doc.autoTable({
+    startY: 38,
+    head: [['Obra','Estado','Avance','Fecha','Descripción']],
+    body: [...OBRAS].sort((a,b)=>(Number(a.orden)||0)-(Number(b.orden)||0)).map(o => [
+      o.nombre||'', o.estado==='done'?'Culminado':'En proceso', (o.avance||0)+'%', o.fecha||'', o.desc||''
+    ]),
+    headStyles:{fillColor:[232,128,43]}, styles:{fontSize:8},
+    columnStyles:{2:{halign:'center'},4:{cellWidth:60}}
+  });
+  doc.save(`Obras_Conopoima_${hoy}.pdf`);
+}
+
+/* ── Inicio ── */
+$('instLogo').src = LOGO_BDT_B64;
+toggleNucleo();
+toggleMascota();
+toggleTrabajo();
+toggleSalud();
+actualizarEdadGrupo();
+$('p_idRegistro').value = generarIdRegistro();
+$('p_fechaIngreso').value = new Date().toISOString().slice(0,10);
+addIngreso();
+recalc();
+loadLatest(false);
+loadPersonas(false);
+loadObras(false);
+if (SCRIPT_URL) setInterval(() => {
+  loadLatest(false);
+  loadPersonas(false);
+  loadObras(false);
+}, REFRESH_SECONDS * 1000);
+</script>
+</body>
+</html>
